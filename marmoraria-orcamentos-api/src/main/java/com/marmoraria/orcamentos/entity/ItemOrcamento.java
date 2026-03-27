@@ -13,7 +13,7 @@ import lombok.Data;import lombok.NoArgsConstructor;import java.math.BigDecimal;
 public class ItemOrcamento {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "produto_servico_id")
