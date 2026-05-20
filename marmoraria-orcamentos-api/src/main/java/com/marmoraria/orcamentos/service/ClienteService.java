@@ -1,15 +1,14 @@
 package com.marmoraria.orcamentos.service;
 
 import com.marmoraria.orcamentos.entity.Cliente;
+import com.marmoraria.orcamentos.exception.ResourceNotFoundException;
 import com.marmoraria.orcamentos.repository.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
-
 public class ClienteService {
 
     @Autowired
@@ -19,8 +18,9 @@ public class ClienteService {
         return clienteRepository.save(cliente);
     }
 
-    public Optional<Cliente> buscarPorId(Long id) {
-        return clienteRepository.findById(id);
+    public Cliente buscarPorId(Long id) {
+        return clienteRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente nao encontrado"));
     }
 
     public List<Cliente> buscarClientes() {
@@ -28,13 +28,12 @@ public class ClienteService {
     }
 
     public Cliente editar(Cliente cliente) {
-        if (!buscarPorId(cliente.getId()).isPresent()) {
-            throw new RuntimeException("Cliente não encontrado");
-        }
+        buscarPorId(cliente.getId());
         return clienteRepository.save(cliente);
     }
 
     public void excluir(Long id) {
+        buscarPorId(id);
         clienteRepository.deleteById(id);
     }
 }
