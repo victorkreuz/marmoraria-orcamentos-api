@@ -1,15 +1,14 @@
 package com.marmoraria.orcamentos.service;
 
 import com.marmoraria.orcamentos.entity.ProdutoServico;
+import com.marmoraria.orcamentos.exception.ResourceNotFoundException;
 import com.marmoraria.orcamentos.repository.ProdutoServicoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
-
 public class ProdutoServicoService {
     @Autowired
     ProdutoServicoRepository produtoServicoRepository;
@@ -18,8 +17,9 @@ public class ProdutoServicoService {
         return produtoServicoRepository.save(produtoServico);
     }
 
-    public Optional<ProdutoServico> buscarPorId(Long id) {
-        return produtoServicoRepository.findById(id);
+    public ProdutoServico buscarPorId(Long id) {
+        return produtoServicoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto/servico nao encontrado"));
     }
 
     public List<ProdutoServico> buscarProdutoServico() {
@@ -27,13 +27,12 @@ public class ProdutoServicoService {
     }
 
     public ProdutoServico editar(ProdutoServico produtoServico) {
-        if (!buscarPorId(produtoServico.getId()).isPresent()) {
-            throw new RuntimeException("Orçamento não encontrado");
-        }
+        buscarPorId(produtoServico.getId());
         return produtoServicoRepository.save(produtoServico);
     }
 
     public void excluir(Long id) {
+        buscarPorId(id);
         produtoServicoRepository.deleteById(id);
     }
 }
