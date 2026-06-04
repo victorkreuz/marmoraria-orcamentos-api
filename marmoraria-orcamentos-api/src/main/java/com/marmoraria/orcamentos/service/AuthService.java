@@ -9,13 +9,21 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     @Autowired
-    AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager;
 
     @Autowired
-    JwtService jwtService;
+    private JwtService jwtService;
+
+    @Autowired
+    private TokenBlocklistService tokenBlocklistService;
 
     public String autenticarUsuario(String username, String senha) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, senha));
         return jwtService.gerarToken(username);
+    }
+
+    public void logout(String token) {
+        String jti = jwtService.extrairJti(token);
+        tokenBlocklistService.revogar(jti, jwtService.extrairExpiracao(token));
     }
 }
