@@ -1,0 +1,1320 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orçamento – Gaúcha Mármores e Granitos</title>
+
+  <!-- ============================================================
+       GOOGLE FONTS
+  ============================================================ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    /* ============================================================
+       1. RESET & PRINT CONFIG
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    @media print {
+      html,
+      body {
+        width: 210mm;
+        min-height: 297mm;
+        background: #ffffff;
+      }
+
+      .document-container {
+        width: 210mm;
+        margin: 0;
+      }
+
+      #cover-page,
+      .doc-page {
+        width: 210mm;
+        height: 297mm;
+        min-height: 297mm;
+        overflow: hidden;
+      }
+
+      .page-break {
+        page-break-before: always;
+        break-before: page;
+      }
+
+      .no-break {
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+    }
+
+    /* ============================================================
+       2. CSS VARIABLES – DESIGN TOKENS
+    ============================================================ */
+    :root {
+      /* Typography */
+      --title-size:     22px;
+      --subtitle-size:  13px;
+      --paragraph-size: 11px;
+      --small-size:      9px;
+
+      /* Font weights */
+      --fw-light:   300;
+      --fw-regular: 400;
+      --fw-medium:  500;
+      --fw-semi:    600;
+      --fw-bold:    700;
+      --fw-black:   800;
+
+      /* Brand Colors */
+      --color-dark-blue:  #0d1b2a;
+      --color-mid-blue:   #1a3050;
+      --color-accent-red: #ed1c24;
+      --color-accent-yel: #fff200;
+      --color-accent-grn: #00843d;
+
+      /* Neutrals */
+      --color-white:       #ffffff;
+      --color-off-white:   #f8f9fa;
+      --color-light-gray:  #e9ecef;
+      --color-mid-gray:    #adb5bd;
+      --color-dark-gray:   #495057;
+      --color-text:        #212529;
+
+      /* Layout */
+      --page-padding:    12mm 18mm 24mm;
+      --section-gap:     28px;
+      --border-radius:   4px;
+    }
+
+    /* ============================================================
+       3. GLOBAL BASE
+    ============================================================ */
+    body {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: var(--paragraph-size);
+      color: var(--color-text);
+      background: #d0d0d0;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* ============================================================
+       4. DOCUMENT WRAPPER
+    ============================================================ */
+    .document-container {
+      width: 210mm;
+      margin: 0 auto;
+      background: var(--color-white);
+    }
+
+    /* ============================================================
+       5. REUSABLE COMPONENTS
+    ============================================================ */
+
+    /* --- Section title --- */
+    .section-title {
+      font-size: var(--title-size);
+      font-weight: var(--fw-bold);
+      color: var(--color-dark-blue);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+
+    /* --- Subtitle / label --- */
+    .subtitle {
+      font-size: var(--subtitle-size);
+      font-weight: var(--fw-semi);
+      color: var(--color-dark-blue);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* --- Paragraph --- */
+    .paragraph {
+      font-size: var(--paragraph-size);
+      font-weight: var(--fw-regular);
+      color: var(--color-dark-gray);
+      line-height: 1.65;
+    }
+
+    /* --- Muted text --- */
+    .text-muted {
+      font-size: var(--small-size);
+      color: var(--color-mid-gray);
+    }
+
+    /* --- Horizontal separator --- */
+    .separator {
+      border: none;
+      border-top: 1px solid var(--color-light-gray);
+      margin: 14px 0;
+    }
+
+    .separator--bold {
+      border-top: 2px solid var(--color-dark-blue);
+    }
+    /* --- Modular blocks --- */
+    .pdf-module {
+      position: relative;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .pdf-module + .pdf-module {
+      margin-top: var(--section-gap);
+    }
+
+    .module-with-divider {
+      padding-top: var(--section-gap);
+      border-top: 1px solid var(--color-light-gray);
+    }
+
+    .module-header + .pdf-module {
+      margin-top: 0;
+    }
+
+    .module-header + .module-with-divider {
+      padding-top: 0;
+      border-top: 0;
+    }
+
+
+    /* --- Standard section headers --- */
+    .pdf-module > .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .pdf-module > .section-header::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 18px;
+      flex: 0 0 4px;
+      background: var(--color-dark-blue);
+    }
+
+    .pdf-module > .section-header .section-title {
+      font-size: 13px;
+    }
+    /* --- Info block: label + value pair --- */
+    .info-block {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .info-block__label {
+      font-size: var(--small-size);
+      font-weight: var(--fw-bold);
+      color: var(--color-mid-gray);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .info-block__value {
+      font-size: var(--paragraph-size);
+      font-weight: var(--fw-medium);
+      color: var(--color-dark-blue);
+    }
+
+    /* --- Section page --- */
+    .doc-page {
+      width: 210mm;
+      height: 297mm;
+      min-height: 297mm;
+      padding: var(--page-padding);
+      position: relative;
+      background: var(--color-white);
+    }
+
+    /* ============================================================
+       6. STRIPE ACCENT (tri-color brand bar)
+    ============================================================ */
+    .brand-stripe {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      height: 5px;
+      width: 100%;
+    }
+    .brand-stripe__red { background: var(--color-accent-red); }
+    .brand-stripe__yel { background: var(--color-accent-yel); }
+    .brand-stripe__grn { background: var(--color-accent-grn); }
+
+    /* ============================================================
+       7. COVER PAGE
+    ============================================================ */
+    #cover-page {
+      width: 210mm;
+      height: 297mm;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .cover-bg {
+      position: absolute;
+      inset: 0;
+      background-image: url('./assets/capa-principal.png');
+      background-size: cover;
+      background-position: center;
+      z-index: 0;
+    }
+
+
+        .cover-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 22mm;
+      text-align: center;
+      color: var(--color-white);
+    }
+
+    .cover-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 9mm;
+      transform: translateY(-6mm);
+    }
+
+    .cover-logo-image {
+      display: block;
+      width: min(143mm, 66%);
+      height: auto;
+    }
+
+        .cover-cta {
+      font-size: 16px;
+      font-weight: var(--fw-regular);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.88);
+    }
+
+    .cover-proposal {
+      position: absolute;
+      left: 22mm;
+      right: 22mm;
+      bottom: 18mm;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4mm;
+      text-align: center;
+      color: var(--color-white);
+    }
+
+    .cover-proposal__title {
+      font-size: 16px;
+      font-weight: var(--fw-regular);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .cover-proposal__client {
+      font-size: 17px;
+      font-weight: var(--fw-bold);
+      line-height: 1.2;
+    }
+
+    /* ============================================================
+       8. INNER PAGE HEADER (repeated on content pages)
+    ============================================================ */
+    .page-header {
+      position: relative;
+      display: grid;
+      grid-template-columns: 34mm minmax(0, 1fr) 58mm;
+      gap: 8mm;
+      align-items: center;
+      min-height: 28mm;
+      margin-bottom: 16px;
+      padding: 4mm 0 8mm;
+      border-bottom: 2px solid var(--color-dark-blue);
+    }
+    .page-header__stripe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1.4px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .page-header__stripe span:nth-child(1) { background: var(--color-accent-grn); }
+    .page-header__stripe span:nth-child(2) { background: var(--color-accent-red); }
+    .page-header__stripe span:nth-child(3) { background: var(--color-accent-yel); }
+
+    .page-header__brand {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .page-header__logo-image {
+      display: block;
+      width: 30mm;
+      height: auto;
+    }
+
+    .page-header__company {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 8.3px;
+      font-weight: var(--fw-medium);
+      line-height: 1.38;
+      color: #7d828b;
+    }
+
+    .page-header__company-line {
+      margin: 0;
+    }
+
+    .page-header__order {
+      width: 100%;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 6px;
+      text-align: left;
+    }
+
+    .page-header__doc-number {
+      font-size: 14px;
+      font-weight: var(--fw-bold);
+      color: #191347;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      line-height: 1.15;
+      white-space: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .page-header__doc-card {
+      width: 100%;
+      background: #191347;
+      color: var(--color-white);
+      padding: 7px 9px;
+      font-size: 8.2px;
+      font-weight: var(--fw-medium);
+      line-height: 1.45;
+      text-align: left;
+    }
+
+    .page-header__doc-card p {
+      margin: 0;
+    }
+
+    .page-header__doc-card span {
+      font-weight: var(--fw-semi);
+    }
+
+    /* ============================================================
+       9. CLIENT INFO SECTION
+    ============================================================ */
+    #client-info .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    #client-info .section-header .section-title {
+      font-size: 13px;
+    }
+
+
+    .client-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px 24px;
+    }
+    .client-grid--3col {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    /* ============================================================
+       10. PROJECT SUMMARY
+    ============================================================ */
+    #project-summary .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    /* ============================================================
+       11. GALLERY IMAGES
+    ============================================================ */
+    #gallery-images {
+      margin-top: 0;
+    }
+
+    #gallery-images .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .gallery-grid__item {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border-radius: var(--border-radius);
+      display: block;
+    }
+
+    .gallery-grid__item--wide {
+      grid-column: span 2;
+      aspect-ratio: 16 / 6;
+    }
+
+        /* ============================================================
+       12. PRODUCT TABLE
+    ============================================================ */
+    #product-table {
+      margin-top: 0;
+    }
+
+    #product-table .section-header {
+      display: flex;
+      align-items: center;
+      height: 25px;
+      margin-bottom: 8px;
+      padding: 0 10px;
+      background: #f2f3f8;
+    }
+
+    #product-table .section-header .section-title {
+      font-size: 10px;
+      font-weight: var(--fw-bold);
+      color: #191347;
+      letter-spacing: 0;
+      line-height: 1;
+    }
+
+    .products-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 9px;
+      color: #1f2430;
+    }
+
+    .products-table thead tr {
+      background: #191347;
+      color: var(--color-white);
+    }
+
+    .products-table thead th {
+      padding: 8px 8px;
+      text-align: left;
+      font-size: 7px;
+      font-weight: var(--fw-bold);
+      letter-spacing: 0;
+      text-transform: uppercase;
+      line-height: 1.15;
+      white-space: nowrap;
+    }
+
+    .products-table .col-image { width: 42px; }
+    .products-table .col-un { width: 46px; }
+    .products-table .col-qty { width: 58px; }
+    .products-table .col-unit { width: 76px; }
+    .products-table .col-total { width: 76px; }
+
+    .products-table thead th.col-un,
+    .products-table thead th.col-qty,
+    .products-table thead th.col-unit,
+    .products-table thead th.col-total,
+    .products-table tbody td.col-un,
+    .products-table tbody td.col-qty,
+    .products-table tbody td.col-unit,
+    .products-table tbody td.col-total {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .products-table tbody tr {
+      background: var(--color-white);
+      border-bottom: 1px solid #191347;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .products-table tbody td {
+      padding: 8px 8px;
+      vertical-align: middle;
+      font-size: 9px;
+      line-height: 1.35;
+      color: #1f2430;
+    }
+
+    .products-table tbody td.product-image-cell {
+      padding: 0;
+      vertical-align: stretch;
+    }
+
+    .products-table .product-thumb {
+      width: 42px;
+      height: 48px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .products-table .product-name {
+      font-size: 9px;
+      font-weight: var(--fw-bold);
+      color: #1f2430;
+      margin-bottom: 4px;
+    }
+
+    .products-table .product-desc {
+      font-size: 7.5px;
+      font-weight: var(--fw-regular);
+      color: #4a4f5c;
+      line-height: 1.35;
+    }
+
+    .products-table tfoot tr {
+      background: #f2f3f8;
+    }
+
+    .products-table tfoot td {
+      padding: 10px 8px;
+      color: #191347;
+      border-top: 0;
+    }
+
+    .products-summary {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 18px;
+      width: 100%;
+      font-size: 12px;
+      font-weight: var(--fw-bold);
+      line-height: 1.2;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .products-summary__item {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .products-summary__label,
+    .products-summary__value {
+      white-space: nowrap;
+    }
+    /* ============================================================
+       13. PAYMENT METHODS
+    ============================================================ */
+    #payment-methods {
+      margin-top: 0;
+    }
+
+    #payment-methods .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .payment-list {
+      list-style: none;
+    }
+
+    .payment-item {
+      display: flex;
+      flex-direction: column;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-light-gray);
+    }
+
+    .payment-item:last-child {
+      border-bottom: none;
+    }
+
+    .payment-item__label {
+      font-size: var(--paragraph-size);
+      font-weight: var(--fw-bold);
+      color: var(--color-dark-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 3px;
+    }
+
+    .payment-item__value {
+      font-size: var(--paragraph-size);
+      font-weight: var(--fw-regular);
+      color: var(--color-dark-gray);
+      line-height: 1.45;
+    }
+
+    /* ============================================================
+       14. OBSERVATIONS
+    ============================================================ */
+    #observations {
+      margin-top: 0;
+    }
+
+    #observations .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .observation-list {
+      list-style: none;
+    }
+
+    .observation-item {
+      display: flex;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--color-light-gray);
+      font-size: var(--paragraph-size);
+      color: var(--color-dark-gray);
+      line-height: 1.6;
+    }
+
+    .observation-item:last-child {
+      border-bottom: none;
+    }
+
+    .observation-item::before {
+      content: '•';
+      color: var(--color-dark-blue);
+      font-weight: var(--fw-bold);
+      font-size: 14px;
+      line-height: 1.4;
+      flex-shrink: 0;
+    }
+
+    /* ============================================================
+       15. TERMS AND CONDITIONS
+    ============================================================ */
+    #terms-and-conditions {
+      margin-top: 0;
+    }
+
+    #terms-and-conditions .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .terms-list {
+      list-style: none;
+    }
+
+    .terms-item {
+      display: flex;
+      gap: 10px;
+      padding: 8px 12px;
+      border-left: 3px solid var(--color-light-gray);
+      margin-bottom: 6px;
+      background: var(--color-off-white);
+      border-radius: 0 var(--border-radius) var(--border-radius) 0;
+      page-break-inside: avoid;
+    }
+
+    .terms-item__label {
+      font-size: var(--paragraph-size);
+      font-weight: var(--fw-bold);
+      color: var(--color-dark-blue);
+      min-width: 110px;
+      flex-shrink: 0;
+    }
+
+    .terms-item__text {
+      font-size: var(--paragraph-size);
+      color: var(--color-dark-gray);
+      line-height: 1.6;
+    }
+
+    /* ============================================================
+       16. SIGNATURES
+    ============================================================ */
+    #signatures {
+      margin-top: 0;
+    }
+
+    .signatures-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      margin-top: 32px;
+    }
+
+    .signature-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .signature-block__line {
+      border-top: 1px solid var(--color-dark-blue);
+      padding-top: 8px;
+    }
+
+    .signature-block__name {
+      font-size: var(--paragraph-size);
+      font-weight: var(--fw-bold);
+      color: var(--color-dark-blue);
+    }
+
+    .signature-block__role {
+      font-size: var(--small-size);
+      color: var(--color-mid-gray);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+
+        /* ============================================================
+       17. FOOTER
+    ============================================================ */
+    .page-footer {
+      position: absolute;
+      left: 18mm;
+      right: 18mm;
+      bottom: 12mm;
+      border-top: 1px solid #e6e9ef;
+      padding-top: 9px;
+      text-align: center;
+      color: #9aa1ad;
+      font-size: 6.5px;
+      font-weight: var(--fw-regular);
+      line-height: 1.45;
+    }
+
+    .page-footer p {
+      margin: 0;
+    }
+
+    .page-footer__company {
+      font-weight: var(--fw-medium);
+    }
+
+    .page-footer__disclaimer {
+      margin-top: 3px;
+    }
+    /* ============================================================
+       18. SECTION SPACING UTILITY
+    ============================================================ */
+    .mt-section { margin-top: var(--section-gap); }
+    .mb-section { margin-bottom: var(--section-gap); }
+  </style>
+</head>
+
+<body>
+<div class="document-container">
+
+  <!-- ============================================================
+       SECTION 1: COVER PAGE
+       - Background image
+       - Centered logo
+  ============================================================ -->
+  <section id="cover-page">
+
+    <div class="cover-bg"></div>
+
+        <div class="cover-content">
+      <div class="cover-hero">
+        <img src="./assets/Logo_ofc_white.png" class="cover-logo-image" alt="Gaúcha Mármores e Granitos" />
+        <p class="cover-cta">SEU PROJETO COMEÇA COM A ESCOLHA CERTA</p>
+      </div>
+    </div>
+
+    <div class="cover-proposal">
+      <p class="cover-proposal__title">PROPOSTA COMERCIAL</p>
+      <p class="cover-proposal__client">Nome do Cliente</p>
+    </div>
+
+  </section>  <!-- END cover-page -->
+
+
+  <!-- ============================================================
+       SECTION 2: CLIENT INFO + PROJECT SUMMARY + GALLERY
+       (Page 2)
+  ============================================================ -->
+  <section id="page-2" class="doc-page page-break">
+
+    <!-- Repeated header on content pages -->
+    <header class="page-header pdf-module module-header no-break">
+            <div class="page-header__stripe" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="page-header__brand">
+        <img src="./assets/Logo_ofc.png" class="page-header__logo-image" alt="Gaúcha Mármores e Granitos" />
+      </div>
+
+      <div class="page-header__company">
+        <p class="page-header__company-line"><span class="company-address">${companyAddress}</span> - <span class="company-district">${companyDistrict}</span></p>
+        <p class="page-header__company-line"><span class="company-city">${companyCity}</span> - <span class="company-state">${companyState}</span> | CEP: <span class="company-zip-code">${companyZipCode}</span></p>
+        <p class="page-header__company-line">CNPJ: <span class="company-cnpj">${companyCnpj}</span> | IE: <span class="company-state-registration">${companyStateRegistration}</span></p>
+        <p class="page-header__company-line">Fone: <span class="company-phone">${companyPhone}</span> | Email: <span class="company-email">${companyEmail}</span></p>
+      </div>
+
+      <div class="page-header__order">
+        <p class="page-header__doc-number">ORÇAMENTO Nº ${proposalNumber}</p>
+        <div class="page-header__doc-card">
+          <p><span>Data da Emissão:</span> ${proposalDate}</p>
+          <p><span>Válido até:</span> ${validUntilDate} (30 dias)</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- --- CLIENT INFO --------------------------------------- -->
+    <section id="client-info" class="pdf-module module-client-info no-break">
+      <div class="section-header">
+        <h2 class="section-title">Dados do Cliente</h2>
+      </div>
+
+      <div class="client-grid">
+
+        <div class="info-block">
+          <span class="info-block__label">Cliente / Razão Social</span>
+          <span class="info-block__value">${clientName}</span>
+        </div>
+
+        <div class="info-block">
+          <span class="info-block__label">CPF / CNPJ</span>
+          <span class="info-block__value">${clientDocument}</span>
+        </div>
+
+        <div class="info-block">
+          <span class="info-block__label">Endereço</span>
+          <span class="info-block__value">${clientAddress}</span>
+        </div>
+
+        <div class="info-block">
+          <span class="info-block__label">Cidade / UF</span>
+          <span class="info-block__value">${clientCity}</span>
+        </div>
+
+        <div class="info-block">
+          <span class="info-block__label">Telefone</span>
+          <span class="info-block__value">${clientPhone}</span>
+        </div>
+
+        <div class="info-block">
+          <span class="info-block__label">E-mail</span>
+          <span class="info-block__value">${clientEmail}</span>
+        </div>
+
+      </div>
+    </section>
+    <!-- END client-info -->
+    <!-- --- PROJECT SUMMARY ----------------------------------- -->
+    <section id="project-summary" class="pdf-module module-project-summary module-with-divider no-break">
+      <div class="section-header">
+        <h2 class="section-title">Dados do Projeto</h2>
+      </div>
+
+      <div class="client-grid client-grid--3col">
+
+        <div class="info-block">
+          <span class="info-block__label">Nome do Projeto</span>
+          <span class="info-block__value">${projectName}</span>
+        </div>
+
+        <div class="info-block">
+          <span class="info-block__label">Ambiente</span>
+          <span class="info-block__value">${projectEnvironment}</span>
+        </div>
+
+        <div class="info-block">
+          <span class="info-block__label">Responsável Técnico</span>
+          <span class="info-block__value">${technicalManager}</span>
+        </div>
+
+      </div>
+    </section>
+    <!-- END project-summary -->
+    <!-- --- GALLERY IMAGES ------------------------------------ -->
+    <section id="gallery-images" class="pdf-module module-gallery module-with-divider">
+      <div class="section-header">
+        <h2 class="section-title">Visualização do Projeto</h2>
+      </div>
+
+      <!--
+        Dynamic image grid.
+        The API replaces ${projectImages} with <img> tags.
+        Example of rendered output:
+        <img src="https://..." class="gallery-grid__item" alt="Vista 1" />
+        <img src="https://..." class="gallery-grid__item" alt="Vista 2" />
+        Add class gallery-grid__item--wide for a 2-column-span image.
+      -->
+      <div class="gallery-grid">
+        ${projectImages}
+      </div>
+
+    </section>
+    <!-- END gallery-images -->
+
+    <!-- Page footer -->
+    <footer class="page-footer module-footer">
+      <p class="page-footer__company">Gaúcha Mármores e Granitos - Qualidade e Tradição em Pedras Naturais e Sintéticas.</p>
+      <p class="page-footer__disclaimer">Este orçamento está sujeito a alterações caso haja mudança nas medidas ou especificações do projeto.</p>
+    </footer>
+
+  </section>
+  <!-- END page-2 -->
+
+
+  <!-- ============================================================
+       SECTION 3: PRODUCTS TABLE
+       (Page 3)
+  ============================================================ -->
+  <section id="page-3" class="doc-page page-break">
+
+    <!-- Repeated header -->
+    <header class="page-header pdf-module module-header no-break">
+            <div class="page-header__stripe" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="page-header__brand">
+        <img src="./assets/Logo_ofc.png" class="page-header__logo-image" alt="Gaúcha Mármores e Granitos" />
+      </div>
+
+      <div class="page-header__company">
+        <p class="page-header__company-line"><span class="company-address">${companyAddress}</span> - <span class="company-district">${companyDistrict}</span></p>
+        <p class="page-header__company-line"><span class="company-city">${companyCity}</span> - <span class="company-state">${companyState}</span> | CEP: <span class="company-zip-code">${companyZipCode}</span></p>
+        <p class="page-header__company-line">CNPJ: <span class="company-cnpj">${companyCnpj}</span> | IE: <span class="company-state-registration">${companyStateRegistration}</span></p>
+        <p class="page-header__company-line">Fone: <span class="company-phone">${companyPhone}</span> | Email: <span class="company-email">${companyEmail}</span></p>
+      </div>
+
+      <div class="page-header__order">
+        <p class="page-header__doc-number">ORÇAMENTO Nº ${proposalNumber}</p>
+        <div class="page-header__doc-card">
+          <p><span>Data da Emissão:</span> ${proposalDate}</p>
+          <p><span>Válido até:</span> ${validUntilDate} (30 dias)</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- --- PRODUCT TABLE ------------------------------------- -->
+    <section id="product-table" class="pdf-module module-products">
+      <div class="section-header">
+        <h2 class="section-title">Produtos e Serviços</h2>
+      </div>
+
+      <table class="products-table">
+        <thead>
+          <tr>
+            <th class="col-image">Cód.</th>
+            <th>Descrição do Material</th>
+            <th class="col-un">UN</th>
+            <th class="col-qty">Qtd.</th>
+            <th class="col-unit">Unitário</th>
+            <th class="col-total">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!--
+            Linhas injetadas pela API no ponto marcado abaixo.
+            Use este padrão para cada item:
+
+            <tr class="product-row">
+              <td class="product-image-cell">
+                <img src="{{item.imageUrl}}" class="product-thumb" alt="{{item.name}}" />
+              </td>
+              <td>
+                <p class="product-name">{{item.name}}</p>
+                <p class="product-desc">{{item.description}}</p>
+              </td>
+              <td class="col-un">{{item.unit}}</td>
+              <td class="col-qty">{{item.quantity}}</td>
+              <td class="col-unit">R$ {{item.unitPrice}}</td>
+              <td class="col-total">R$ {{item.totalPrice}}</td>
+            </tr>
+          -->
+          ${items}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="6">
+              <div class="products-summary">
+                <div class="products-summary__item products-summary__discount">
+                  <span class="products-summary__label">Desconto:</span>
+                  <span class="products-summary__value">R$ ${discountValue}</span>
+                </div>
+                <div class="products-summary__item products-summary__total">
+                  <span class="products-summary__label">Total Geral:</span>
+                  <span class="products-summary__value">R$ ${totalValue}</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </section>    <!-- END product-table -->
+    <!-- --- PAYMENT METHODS ----------------------------------- -->
+    <section id="payment-methods" class="pdf-module module-payment-methods module-with-divider no-break">
+      <div class="section-header">
+        <h2 class="section-title">Condições de Pagamento</h2>
+      </div>
+
+      <ul class="payment-list">
+
+        <li class="payment-item">
+          <span class="payment-item__label">À vista (Pix ou Dinheiro)</span>
+          <span class="payment-item__value">
+            4% de desconto sobre o valor total do orçamento.
+          </span>
+        </li>
+
+        <li class="payment-item">
+          <span class="payment-item__label">Entrada + Saldo</span>
+          <span class="payment-item__value">
+            50% na aprovação do orçamento e 50% na instalação.
+          </span>
+        </li>
+
+        <li class="payment-item">
+          <span class="payment-item__label">Boleto Bancário</span>
+          <span class="payment-item__value">
+            Mediante aprovação cadastral.
+          </span>
+        </li>
+
+        <li class="payment-item">
+          <span class="payment-item__label">Prazo de Produção</span>
+          <span class="payment-item__value">
+            Iniciado após confirmação do pagamento da entrada.
+          </span>
+        </li>
+
+        <li class="payment-item">
+          <span class="payment-item__label">Observação</span>
+          <span class="payment-item__value">
+            Valores sujeitos à alteração em caso de mudanças no projeto ou medidas finais.
+          </span>
+        </li>
+
+      </ul>
+    </section>
+    <!-- END payment-methods -->
+
+    <!-- Page footer -->
+    <footer class="page-footer module-footer">
+      <p class="page-footer__company">Gaúcha Mármores e Granitos - Qualidade e Tradição em Pedras Naturais e Sintéticas.</p>
+      <p class="page-footer__disclaimer">Este orçamento está sujeito a alterações caso haja mudança nas medidas ou especificações do projeto.</p>
+    </footer>
+
+  </section>
+  <!-- END page-3 -->
+
+
+  <!-- ============================================================
+       SECTION 4: OBSERVATIONS + TERMS + SIGNATURES
+       (Page 4)
+  ============================================================ -->
+  <section id="page-4" class="doc-page page-break">
+
+    <!-- Repeated header -->
+    <header class="page-header pdf-module module-header no-break">
+            <div class="page-header__stripe" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="page-header__brand">
+        <img src="./assets/Logo_ofc.png" class="page-header__logo-image" alt="Gaúcha Mármores e Granitos" />
+      </div>
+
+      <div class="page-header__company">
+        <p class="page-header__company-line"><span class="company-address">${companyAddress}</span> - <span class="company-district">${companyDistrict}</span></p>
+        <p class="page-header__company-line"><span class="company-city">${companyCity}</span> - <span class="company-state">${companyState}</span> | CEP: <span class="company-zip-code">${companyZipCode}</span></p>
+        <p class="page-header__company-line">CNPJ: <span class="company-cnpj">${companyCnpj}</span> | IE: <span class="company-state-registration">${companyStateRegistration}</span></p>
+        <p class="page-header__company-line">Fone: <span class="company-phone">${companyPhone}</span> | Email: <span class="company-email">${companyEmail}</span></p>
+      </div>
+
+      <div class="page-header__order">
+        <p class="page-header__doc-number">ORÇAMENTO Nº ${proposalNumber}</p>
+        <div class="page-header__doc-card">
+          <p><span>Data da Emissão:</span> ${proposalDate}</p>
+          <p><span>Válido até:</span> ${validUntilDate} (30 dias)</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- --- OBSERVATIONS -------------------------------------- -->
+    <section id="observations" class="pdf-module module-observations no-break">
+      <div class="section-header">
+        <h2 class="section-title">Observações do Projeto</h2>
+      </div>
+
+      <!--
+        Lista injetada pela API no ponto marcado abaixo.
+        Each item follows the pattern:
+        <li class="observation-item">{{observation.text}}</li>
+      -->
+      <ul class="observation-list">
+        ${observations}
+      </ul>
+    </section>
+    <!-- END observations -->
+    <!-- --- TERMS AND CONDITIONS ------------------------------ -->
+    <section id="terms-and-conditions" class="pdf-module module-terms module-with-divider no-break">
+      <div class="section-header">
+        <h2 class="section-title">Termos e Observações</h2>
+      </div>
+
+      <ul class="terms-list">
+
+        <li class="terms-item">
+          <span class="terms-item__label">Instalação:</span>
+          <span class="terms-item__text">
+            O tamponamento é instalado por profissionais capacitados pela marmoraria.
+          </span>
+        </li>
+
+        <li class="terms-item">
+          <span class="terms-item__label">Garantia:</span>
+          <span class="terms-item__text">
+            A instalação do tamponamento por terceiros invalida a proteção por danos ou garantia.
+          </span>
+        </li>
+
+        <li class="terms-item">
+          <span class="terms-item__label">Exclusões:</span>
+          <span class="terms-item__text">
+            Não incluso serviços de instalações elétricas, hidráulicas (torneiras, sifão, sanfona) ou materiais extras.
+          </span>
+        </li>
+
+        <li class="terms-item">
+          <span class="terms-item__label">Serviços Terceiros:</span>
+          <span class="terms-item__text">
+            Não incluso colocação de fogão de mesa, depurador ou coifa (se adquiridos por terceiros).
+          </span>
+        </li>
+
+        <li class="terms-item">
+          <span class="terms-item__label">Cuidados:</span>
+          <span class="terms-item__text">
+            Não apoiar panelas quentes diretamente ao tampo (risco de manchas).
+            Não usar produtos corrosivos (limpa alumínio, diabo verde).
+          </span>
+        </li>
+
+        <li class="terms-item">
+          <span class="terms-item__label">Limpeza:</span>
+          <span class="terms-item__text">
+            A limpeza diária deve ser realizada exclusivamente com <strong>DETERGENTE NEUTRO</strong>.
+          </span>
+        </li>
+
+      </ul>
+    </section>
+    <!-- END terms-and-conditions -->
+    <!-- --- SIGNATURES ---------------------------------------- -->
+    <section id="signatures" class="pdf-module module-signatures module-with-divider no-break">
+      <div class="signatures-grid">
+
+        <div class="signature-block">
+          <div style="height:36px;"></div>
+          <div class="signature-block__line">
+            <p class="signature-block__name">Gaúcha Mármores e Granitos</p>
+            <p class="signature-block__role">Responsável</p>
+          </div>
+        </div>
+
+        <div class="signature-block">
+          <div style="height:36px;"></div>
+          <div class="signature-block__line">
+            <p class="signature-block__name">${clientName}</p>
+            <p class="signature-block__role">Aceite do Orçamento</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+    <!-- END signatures -->
+
+    <!-- --- FOOTER (last page) -------------------------------- -->
+    <footer class="page-footer module-footer">
+      <p class="page-footer__company">Gaúcha Mármores e Granitos - Qualidade e Tradição em Pedras Naturais e Sintéticas.</p>
+      <p class="page-footer__disclaimer">Este orçamento está sujeito a alterações caso haja mudança nas medidas ou especificações do projeto.</p>
+    </footer>
+    <!-- END footer -->
+
+  </section>
+  <!-- END page-4 -->
+
+</div>
+<!-- END document-container -->
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

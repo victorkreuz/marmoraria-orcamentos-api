@@ -1,0 +1,43 @@
+<section id="page-products" class="doc-page page-break">
+    [[CABECALHO_DOCUMENTO]]
+
+    <section id="product-table" class="pdf-module module-products">
+        <div class="section-header">
+            <h2 class="section-title">Produtos e Serviços</h2>
+        </div>
+
+        <table class="products-table">
+            <thead>
+            <tr>
+                <th class="col-image">Cód.</th>
+                <th>Descrição do Material</th>
+                <th class="col-un">UN</th>
+                <th class="col-qty">Qtd.</th>
+                <th class="col-unit">Unitário</th>
+                <th class="col-total">Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            [[ITENS_ORCAMENTO]]
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="6">
+                    <div class="products-summary">
+                        <div class="products-summary__item products-summary__discount">
+                            <span class="products-summary__label">Desconto:</span>
+                            <span class="products-summary__value">[[DESCONTO_VALOR]]</span>
+                        </div>
+                        <div class="products-summary__item products-summary__total">
+                            <span class="products-summary__label">Total Geral:</span>
+                            <span class="products-summary__value">[[TOTAL_FINAL]]</span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            </tfoot>
+        </table>
+    </section>
+
+    [[RODAPE]]
+</section>

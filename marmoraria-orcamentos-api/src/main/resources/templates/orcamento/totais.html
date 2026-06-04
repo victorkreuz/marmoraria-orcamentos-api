@@ -1,0 +1,59 @@
+<section id="page-payment" class="doc-page page-break">
+    [[CABECALHO_DOCUMENTO]]
+
+    <section id="payment-methods" class="pdf-module module-payment-methods no-break">
+        <div class="section-header">
+            <h2 class="section-title">Condições de Pagamento</h2>
+        </div>
+
+        <ul class="payment-list">
+            <li class="payment-item">
+                <span class="payment-item__label">Valor à vista</span>
+                <span class="payment-item__value">[[VALOR_A_VISTA]]</span>
+            </li>
+
+            <li class="payment-item">
+                <span class="payment-item__label">Entrada + Saldo</span>
+                <span class="payment-item__value">[[VALOR_ENTRADA]] na aprovação do orçamento e [[VALOR_RESTANTE]] - [[DESCRICAO_RESTANTE]].</span>
+            </li>
+
+            <li class="payment-item">
+                <span class="payment-item__label">Resumo financeiro</span>
+                <span class="payment-item__value">
+                    <table class="totals-table">
+                        [[LINHAS_TOTAIS]]
+                    </table>
+                </span>
+            </li>
+
+            <li class="payment-item">
+                <span class="payment-item__label">Prazo de produção</span>
+                <span class="payment-item__value">[[PRAZO_PRODUCAO]]</span>
+            </li>
+        </ul>
+    </section>
+
+    [[SECAO_AVISOS]]
+
+    <section id="signatures" class="pdf-module module-signatures module-with-divider no-break">
+        <div class="signatures-grid">
+            <div class="signature-block">
+                <div class="signature-space"></div>
+                <div class="signature-block__line">
+                    <p class="signature-block__name">[[EMPRESA_NOME]]</p>
+                    <p class="signature-block__role">Responsável</p>
+                </div>
+            </div>
+
+            <div class="signature-block">
+                <div class="signature-space"></div>
+                <div class="signature-block__line">
+                    <p class="signature-block__name">[[NOME_CLIENTE]]</p>
+                    <p class="signature-block__role">Aceite do Orçamento</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    [[RODAPE]]
+</section>
