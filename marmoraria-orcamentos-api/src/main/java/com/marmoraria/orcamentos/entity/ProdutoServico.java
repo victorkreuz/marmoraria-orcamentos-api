@@ -36,4 +36,6 @@ public class ProdutoServico {
     private BigDecimal valorUnitario;
 
     private String imagemPath;
+
+    private String imagemUrl;
 }

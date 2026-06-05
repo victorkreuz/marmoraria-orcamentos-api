@@ -27,18 +27,16 @@ public class Cliente {
     @NotBlank(message = "Nome e obrigatorio")
     private String nome;
 
-    @NotBlank(message = "CPF/CNPJ e obrigatorio")
-    @Pattern(regexp = "^(\\d{11}|\\d{14})$", message = "CPF/CNPJ deve conter 11 ou 14 numeros")
+    @Pattern(regexp = "^$|^(\\d{11}|\\d{14})$", message = "CPF/CNPJ deve conter 11 ou 14 numeros")
     private String cpfCnpj;
 
-    @NotBlank(message = "Email e obrigatorio")
     @Email(message = "Email invalido")
     private String email;
 
-    @NotBlank(message = "Telefone e obrigatorio")
-    @Pattern(regexp = "^[0-9()+\\-\\s]{8,20}$", message = "Telefone invalido")
+    @Pattern(regexp = "^$|^[0-9()+\\-\\s]{8,20}$", message = "Telefone invalido")
     private String telefone;
 
-    @NotBlank(message = "Endereco e obrigatorio")
     private String endereco;
+
+    private String cidade;
 }
