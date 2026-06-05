@@ -7,6 +7,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
+import jakarta.persistence.CascadeType;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -16,6 +19,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Data
@@ -37,13 +41,37 @@ public class ItemOrcamento {
     private Orcamento orcamento;
 
     private Integer cod;
+
+    private String nome;
     private String descricao;
+    private String tipoPedra;
+    private String acabamento;
+    private String dimensoes;
+
+    @DecimalMin(value = "0.00", message = "Metros quadrados nao pode ser negativo")
+    private BigDecimal metrosQuadrados;
 
     @NotNull(message = "Quantidade e obrigatoria")
     @Min(value = 1, message = "Quantidade deve ser maior que zero")
     private Integer quantidade;
 
-    @NotNull(message = "Valor unitario e obrigatorio")
+    @DecimalMin(value = "0.00", message = "Preco unitario nao pode ser negativo")
+    private BigDecimal precoUnitario;
+
+    private BigDecimal subtotal;
+
+    private Boolean freteIncluso;
+
+    @DecimalMin(value = "0.00", message = "Valor de frete nao pode ser negativo")
+    private BigDecimal freteValor;
+
+    private String imagemUrl;
+
+    @com.fasterxml.jackson.annotation.JsonManagedReference("item-imagens")
+    @OneToMany(mappedBy = "itemOrcamento", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("ordem ASC, id ASC")
+    private List<ItemOrcamentoImagem> imagens;
+
     @DecimalMin(value = "0.00", message = "Valor unitario nao pode ser negativo")
     private BigDecimal valorUnitario;
 
