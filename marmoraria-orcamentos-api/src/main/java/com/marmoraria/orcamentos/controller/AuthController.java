@@ -1,6 +1,7 @@
 package com.marmoraria.orcamentos.controller;
 
 import com.marmoraria.orcamentos.dto.LoginRequest;
+import com.marmoraria.orcamentos.dto.LoginResponse;
 import com.marmoraria.orcamentos.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -19,8 +20,9 @@ public class AuthController {
     AuthService authService;
 
     @PostMapping("/login")
-    public String autenticarUsuario(@Valid @RequestBody LoginRequest loginRequest) {
-        return authService.autenticarUsuario(loginRequest.getUsername(), loginRequest.getSenha());
+    public LoginResponse autenticarUsuario(@Valid @RequestBody LoginRequest loginRequest) {
+        String token = authService.autenticarUsuario(loginRequest.getUsername(), loginRequest.getSenha());
+        return new LoginResponse(token);
     }
 
     @PostMapping("/logout")

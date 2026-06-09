@@ -2,6 +2,7 @@ package com.marmoraria.orcamentos.exception;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -19,6 +23,8 @@ import java.util.NoSuchElementException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException exception, HttpServletRequest request) {
@@ -55,6 +61,15 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, message, request.getRequestURI(), null);
     }
 
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiError> handleDataIntegrity(DataIntegrityViolationException exception, HttpServletRequest request) {
+        String method = request.getMethod();
+        String message = "DELETE".equalsIgnoreCase(method)
+                ? "Nao e possivel excluir: registro possui vinculos com outros dados"
+                : "Operacao nao permitida: violacao de integridade dos dados";
+        return buildResponse(HttpStatus.CONFLICT, message, request.getRequestURI(), null);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException exception, HttpServletRequest request) {
         return buildResponse(HttpStatus.BAD_REQUEST, exception.getMessage(), request.getRequestURI(), null);
@@ -62,7 +77,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(Exception exception, HttpServletRequest request) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno do servidor", request.getRequestURI(), null);
+        log.error("Erro inesperado em {} {}: {}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
+        String devMessage = exception.getClass().getSimpleName() + ": " + exception.getMessage();
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, devMessage, request.getRequestURI(), null);
     }
 
     private ResponseEntity<ApiError> buildResponse(HttpStatus status, String message, String path, Map<String, String> fields) {

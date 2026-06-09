@@ -47,7 +47,7 @@ public class OrcamentoService {
         orcamentoRepository.deleteById(id);
     }
 
-    private void calcularValorTotal(Orcamento orcamento) {
+    public void calcularValorTotal(Orcamento orcamento) {
         BigDecimal totalItens = BigDecimal.ZERO;
         List<ItemOrcamento> itens = orcamento.getItemOrcamentoList();
 

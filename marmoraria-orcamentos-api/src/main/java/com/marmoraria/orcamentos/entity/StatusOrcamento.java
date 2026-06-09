@@ -4,6 +4,8 @@ public enum StatusOrcamento {
     SOLICITADO,
     ENVIADO,
     VENCIDO,
-    APROVADO
-
+    APROVADO,
+    RASCUNHO,
+    REJEITADO,
+    EXPIRADO
 }
