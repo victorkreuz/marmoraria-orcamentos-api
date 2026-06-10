@@ -5,7 +5,6 @@ import com.marmoraria.orcamentos.dto.OpcoesGeracaoRequest;
 import com.marmoraria.orcamentos.entity.Cliente;
 import com.marmoraria.orcamentos.entity.Financeiro;
 import com.marmoraria.orcamentos.entity.ItemOrcamento;
-import com.marmoraria.orcamentos.entity.ObservacaoOrcamento;
 import com.marmoraria.orcamentos.entity.Orcamento;
 import com.marmoraria.orcamentos.entity.Projeto;
 import com.marmoraria.orcamentos.entity.ProjetoImagem;
@@ -56,27 +55,28 @@ public class OrcamentoDocumentoService {
     @Autowired
     private OrcamentoService orcamentoService;
 
-    @Autowired
-    private ObservacaoOrcamentoService observacaoService;
-
     @Transactional(readOnly = true)
     public String gerarHtml(Long orcamentoId, GerarOrcamentoRequest request) {
         Orcamento orcamento = orcamentoService.buscarPorId(orcamentoId);
         orcamentoService.calcularValorTotal(orcamento);
 
         OpcoesGeracaoRequest opcoes = normalizarOpcoes(request);
-        List<ObservacaoOrcamento> observacoes = resolverObservacoes(orcamento, request);
         String responsavelTecnico = responsavelTecnico(orcamento);
 
         Map<String, String> dados = contextoBase();
         dados.put("CSS_DOCUMENTO", renderizar("orcamento.css", contextoBase()));
         dados.put("TITULO_DOCUMENTO", "Orçamento " + esc(numeroOrcamento(orcamento)));
+        dados.put("CABECALHO_GLOBAL", cabecalho(orcamento));
+        dados.put("RODAPE_GLOBAL", rodape());
         dados.put("PAGINA_CAPA", opcoes.isImprimirCapaAtivo() ? paginaCapa(orcamento) : "");
+        dados.put("PAGINA_RESUMO", opcoes.isImprimirResumoAtivo() ? paginaResumo(orcamento) : "");
         dados.put("PAGINA_IDENTIFICACAO", paginaIdentificacao(orcamento, opcoes, responsavelTecnico));
         dados.put("PAGINA_PROJETO", "");
         dados.put("PAGINA_AVISOS", "");
-        dados.put("PAGINA_ITENS", paginaItens(orcamento));
-        dados.put("PAGINA_TOTAIS", paginaTotais(orcamento, opcoes, observacoes, responsavelTecnico));
+        dados.put("PAGINA_ITENS", opcoes.isPularItensAtivo() ? "" : paginaItens(orcamento, opcoes));
+        String obsDocumento = (request != null && !isBlank(request.getObservacoesDocumento()))
+                ? request.getObservacoesDocumento() : null;
+        dados.put("PAGINA_TOTAIS", paginaTotais(orcamento, opcoes, responsavelTecnico, obsDocumento));
 
         return renderizar("orcamento.html", dados);
     }
@@ -156,7 +156,20 @@ public class OrcamentoDocumentoService {
     }
 
     private String navegadorDisponivel() {
+        // Permite sobrescrever via variável de ambiente (ex: Railway com caminho customizado)
+        String envPath = System.getenv("BROWSER_PATH");
+        if (envPath != null && !envPath.isBlank() && Files.exists(Path.of(envPath))) {
+            return envPath;
+        }
+
         List<String> candidatos = List.of(
+                // Linux — Railway / Docker
+                "/usr/bin/google-chrome-stable",
+                "/usr/bin/google-chrome",
+                "/usr/bin/chromium-browser",
+                "/usr/bin/chromium",
+                "/snap/bin/chromium",
+                // Windows
                 "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
                 "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
                 "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
@@ -167,6 +180,17 @@ public class OrcamentoDocumentoService {
                 return candidato;
             }
         }
+
+        // Tenta localizar via PATH do sistema (Linux com Nixpacks)
+        try {
+            Process p = new ProcessBuilder("which", "chromium").redirectErrorStream(true).start();
+            if (p.waitFor(3, TimeUnit.SECONDS) && p.exitValue() == 0) {
+                String resultado = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+                if (!resultado.isBlank()) return resultado;
+            }
+        } catch (Exception ignored) {
+        }
+
         return null;
     }
 
@@ -187,21 +211,11 @@ public class OrcamentoDocumentoService {
             opcoes.setOrcamentoObjetivo(false);
         }
         if (opcoes.getImprimirTotal() == null) {
-            opcoes.setImprimirTotal(false);
+            opcoes.setImprimirTotal(true);
         }
         return opcoes;
     }
 
-    private List<ObservacaoOrcamento> resolverObservacoes(Orcamento orcamento, GerarOrcamentoRequest request) {
-        if (request != null
-                && request.getObservacoesSelecionadas() != null) {
-            return observacaoService.buscarSelecionadas(request.getObservacoesSelecionadas());
-        }
-        if (orcamento.getObservacoes() == null) {
-            return List.of();
-        }
-        return orcamento.getObservacoes();
-    }
 
     private String paginaCapa(Orcamento orcamento) {
         Map<String, String> dados = contextoBase();
@@ -213,26 +227,109 @@ public class OrcamentoDocumentoService {
         return renderizar("capa.html", dados);
     }
 
+    private String paginaResumo(Orcamento orcamento) {
+        Financeiro financeiro = financeiroOuVazio(orcamento);
+        Projeto projeto = orcamento.getProjeto();
+        LocalDate vencimento = dataVencimento(orcamento);
+
+        Map<String, String> dados = contextoBase();
+        dados.put("SECTION_CLASS", "doc-section-inline");
+        dados.put("NOME_CLIENTE", esc(nomeCliente(orcamento)));
+
+        // Linha do projeto (somente se tiver nome ou material)
+        String nomeProjeto = projeto == null ? null : projeto.getNome();
+        String material = projeto == null ? null : projeto.getTipoPedraPrincipal();
+        if (!isBlank(nomeProjeto) || !isBlank(material)) {
+            StringBuilder linha = new StringBuilder("<p class=\"resumo-projeto\">");
+            if (!isBlank(nomeProjeto)) linha.append("<strong>").append(esc(nomeProjeto)).append("</strong>");
+            if (!isBlank(nomeProjeto) && !isBlank(material)) linha.append(" &nbsp;·&nbsp; ");
+            if (!isBlank(material)) linha.append(esc(material));
+            linha.append("</p>");
+            dados.put("RESUMO_PROJETO_LINHA", linha.toString());
+        } else {
+            dados.put("RESUMO_PROJETO_LINHA", "");
+        }
+
+        // Cards: material e prazo (omite se vazio)
+        dados.put("RESUMO_CARD_MATERIAL", isBlank(material) ? "" :
+            "<div class=\"resumo-card\"><span class=\"resumo-card__label\">Material Principal</span>" +
+            "<span class=\"resumo-card__value\">" + esc(material) + "</span></div>");
+
+        String prazo = orcamento.getPrazoExecucaoDias() == null ? null :
+            orcamento.getPrazoExecucaoDias() + " dias úteis";
+        dados.put("RESUMO_CARD_PRAZO", isBlank(prazo) ? "" :
+            "<div class=\"resumo-card\"><span class=\"resumo-card__label\">Prazo de Produção</span>" +
+            "<span class=\"resumo-card__value\">" + esc(prazo) + "</span>" +
+            "<span class=\"resumo-card__sub\">após aprovação e entrada</span></div>");
+
+        dados.put("DATA_VENCIMENTO", esc(formatarData(vencimento)));
+        dados.put("VALIDADE_DIAS", esc(validadeTexto(orcamento)));
+
+        // Bloco de valor — exibe total geral (subtotal antes de descontos)
+        dados.put("TOTAL_GERAL", esc(formatarMoeda(financeiro.getSubtotalItens())));
+        if (valorOuZero(financeiro.getDescontoValorReais()).compareTo(BigDecimal.ZERO) > 0) {
+            dados.put("RESUMO_DESCONTO",
+                "<span class=\"resumo-valor__desconto\">Desconto: -" +
+                esc(formatarMoeda(financeiro.getDescontoValorReais())) +
+                " &nbsp;·&nbsp; Total Final: " +
+                esc(formatarMoeda(financeiro.getTotalFinal())) + "</span>");
+        } else {
+            dados.put("RESUMO_DESCONTO", "");
+        }
+
+        // Bloco de pagamento
+        String meioPagTitulo = financeiro.getMeioPagamentoTitulo();
+        String meioPagDesc = financeiro.getMeioPagamentoDescricao();
+        if (!isBlank(meioPagTitulo)) {
+            StringBuilder pag = new StringBuilder("<div class=\"resumo-pagamento\">")
+                .append("<span class=\"resumo-pagamento__label\">Forma de Pagamento</span>")
+                .append("<span class=\"resumo-pagamento__titulo\">").append(esc(meioPagTitulo)).append("</span>");
+            if (!isBlank(meioPagDesc)) {
+                pag.append("<span class=\"resumo-pagamento__desc\">").append(esc(meioPagDesc)).append("</span>");
+            }
+            pag.append("</div>");
+            dados.put("RESUMO_PAGAMENTO", pag.toString());
+        } else {
+            dados.put("RESUMO_PAGAMENTO", "");
+        }
+
+        return renderizar("resumo.html", dados);
+    }
+
     private String paginaIdentificacao(Orcamento orcamento, OpcoesGeracaoRequest opcoes, String responsavelTecnico) {
         Cliente cliente = orcamento.getCliente();
         LocalDate vencimento = dataVencimento(orcamento);
 
         Map<String, String> dados = contextoBase();
-        dados.put("CABECALHO_DOCUMENTO", cabecalho(orcamento));
+        dados.put("SECTION_CLASS", "doc-section-inline");
         dados.put("NUMERO_ORCAMENTO", esc(numeroOrcamento(orcamento)));
         dados.put("NOME_CLIENTE", esc(nomeCliente(orcamento)));
-        dados.put("CPF_CNPJ", esc(valor(cliente == null ? null : cliente.getCpfCnpj())));
-        dados.put("TELEFONE_CLIENTE", esc(valor(cliente == null ? null : cliente.getTelefone())));
-        dados.put("EMAIL_CLIENTE", esc(valor(cliente == null ? null : cliente.getEmail())));
-        dados.put("ENDERECO_CLIENTE", esc(valor(cliente == null ? null : cliente.getEndereco())));
-        dados.put("CIDADE_CLIENTE", esc(cidadeCliente(cliente)));
+        dados.put("CAMPOS_CLIENTE_EXTRAS", camposClienteExtras(cliente));
         dados.put("DATA_EMISSAO", esc(formatarData(orcamento.getDataEmissao())));
         dados.put("VALIDADE_DIAS", esc(validadeTexto(orcamento)));
         dados.put("DATA_VENCIMENTO", esc(formatarData(vencimento)));
         dados.put("SECAO_PROJETO", opcoes.isOrcamentoObjetivoAtivo() ? "" : paginaProjeto(orcamento, responsavelTecnico));
-        dados.put("RODAPE", rodape());
 
         return renderizar("identificacao.html", dados);
+    }
+
+    private String camposClienteExtras(Cliente cliente) {
+        if (cliente == null) return "";
+        StringBuilder sb = new StringBuilder();
+        infoBlockSe(sb, "CPF / CNPJ", cliente.getCpfCnpj());
+        infoBlockSe(sb, "Endereço", cliente.getEndereco());
+        infoBlockSe(sb, "Cidade / UF", cliente.getCidade());
+        infoBlockSe(sb, "Telefone", cliente.getTelefone());
+        infoBlockSe(sb, "E-mail", cliente.getEmail());
+        return sb.toString();
+    }
+
+    private void infoBlockSe(StringBuilder sb, String label, String value) {
+        if (isBlank(value)) return;
+        sb.append("<div class=\"info-block\">")
+          .append("<span class=\"info-block__label\">").append(esc(label)).append("</span>")
+          .append("<span class=\"info-block__value\">").append(esc(value)).append("</span>")
+          .append("</div>");
     }
 
     private String paginaProjeto(Orcamento orcamento, String responsavelTecnico) {
@@ -260,7 +357,9 @@ public class OrcamentoDocumentoService {
                     continue;
                 }
                 html.append("<figure class=\"gallery-figure\">");
-                html.append("<figcaption>").append(esc(valor(imagem.getTitulo()))).append("</figcaption>");
+                if (tituloValido(imagem.getTitulo())) {
+                    html.append("<figcaption>").append(esc(imagem.getTitulo())).append("</figcaption>");
+                }
                 html.append("<img class=\"gallery-grid__item\" src=\"")
                         .append(esc(imagem.getUrl()))
                         .append("\" alt=\"")
@@ -277,49 +376,34 @@ public class OrcamentoDocumentoService {
         return imagemOuPlaceholder(foto, "gallery-grid__item gallery-grid__item--wide", "Foto do projeto", "Imagem do projeto");
     }
 
-    private String paginaAvisos(Orcamento orcamento, List<ObservacaoOrcamento> observacoes) {
-        Map<String, String> dados = contextoBase();
-        dados.put("PRAZO_EXECUCAO_DIAS", esc(valor(orcamento.getPrazoExecucaoDias())));
-        dados.put("OBSERVACOES_SELECIONADAS", observacoesHtml(observacoes));
-
-        return renderizar("avisos.html", dados);
-    }
-
-    private String paginaItens(Orcamento orcamento) {
+    private String paginaItens(Orcamento orcamento, OpcoesGeracaoRequest opcoes) {
         StringBuilder itensHtml = new StringBuilder();
         List<ItemOrcamento> itens = orcamento.getItemOrcamentoList() == null ? List.of() : orcamento.getItemOrcamentoList();
 
         for (ItemOrcamento item : itens) {
-            Map<String, String> dados = contextoBase();
-            dados.put("CODIGO_ITEM", esc(codigoItem(item)));
-            dados.put("IMAGEM_ITEM", imagemOuPlaceholder(imagemItem(item), "product-thumb", "Imagem do item", "Sem imagem"));
-            dados.put("NOME_ITEM", esc(nomeItem(item)));
-            dados.put("DESCRICAO_ITEM", esc(descricaoItem(item)));
-            dados.put("UNIDADE_ITEM", esc(unidadeItem(item)));
-            dados.put("TIPO_PEDRA", esc(valor(item.getTipoPedra())));
-            dados.put("ACABAMENTO", esc(valor(item.getAcabamento())));
-            dados.put("DIMENSOES", esc(valor(item.getDimensoes())));
-            dados.put("METROS_QUADRADOS", esc(valor(item.getMetrosQuadrados())));
-            dados.put("QUANTIDADE", esc(valor(item.getQuantidade())));
-            dados.put("PRECO_UNITARIO", esc(formatarMoeda(item.getPrecoUnitario())));
-            dados.put("SUBTOTAL_ITEM", esc(formatarMoeda(item.getSubtotal())));
-            dados.put("FRETE_CLASSE", Boolean.FALSE.equals(item.getFreteIncluso()) ? "no" : "yes");
-            dados.put("FRETE_TEXTO", Boolean.FALSE.equals(item.getFreteIncluso()) ? "Frete não incluso" : "Frete incluso");
-            itensHtml.append(renderizar("item.html", dados));
+            Map<String, String> dadosItem = contextoBase();
+            dadosItem.put("CODIGO_ITEM", esc(codigoItem(item)));
+            dadosItem.put("IMAGEM_ITEM", imagemOuPlaceholder(imagemItem(item), "product-thumb", "Imagem do item", "Sem imagem"));
+            dadosItem.put("NOME_ITEM", esc(nomeItem(item)));
+            dadosItem.put("DESCRICAO_ITEM", esc(descricaoItem(item)));
+            dadosItem.put("UNIDADE_ITEM", esc(unidadeItem(item)));
+            dadosItem.put("QUANTIDADE", esc(valor(item.getQuantidade())));
+            dadosItem.put("PRECO_UNITARIO", esc(formatarMoeda(item.getPrecoUnitario())));
+            dadosItem.put("SUBTOTAL_ITEM", esc(formatarMoeda(item.getValorTotal())));
+            itensHtml.append(renderizar("item.html", dadosItem));
         }
 
         Financeiro financeiro = financeiroOuVazio(orcamento);
         Map<String, String> dados = contextoBase();
-        dados.put("CABECALHO_DOCUMENTO", cabecalho(orcamento));
+        dados.put("SECTION_CLASS", "doc-section-inline");
         dados.put("ITENS_ORCAMENTO", itensHtml.isEmpty() ? linhaTabelaVazia("Nenhum item cadastrado neste orçamento.") : itensHtml.toString());
         dados.put("DESCONTO_VALOR", esc(formatarMoeda(financeiro.getDescontoValorReais())));
         dados.put("TOTAL_FINAL", esc(formatarMoeda(financeiro.getTotalFinal())));
-        dados.put("RODAPE", rodape());
 
         return renderizar("itens.html", dados);
     }
 
-    private String paginaTotais(Orcamento orcamento, OpcoesGeracaoRequest opcoes, List<ObservacaoOrcamento> observacoes, String responsavelTecnico) {
+    private String paginaTotais(Orcamento orcamento, OpcoesGeracaoRequest opcoes, String responsavelTecnico, String observacoesDocumento) {
         Financeiro financeiro = financeiroOuVazio(orcamento);
         StringBuilder linhas = new StringBuilder();
         linhas.append(linhaTotal("Subtotal dos itens", formatarMoeda(financeiro.getSubtotalItens()), false));
@@ -338,41 +422,41 @@ public class OrcamentoDocumentoService {
             linhas.append(linhaTotal("Adendos / Acréscimos", formatarMoeda(financeiro.getAdendos()), false));
         }
         if (opcoes.isImprimirTotalAtivo()) {
-            linhas.append(linhaTotal("Total geral", formatarMoeda(financeiro.getSubtotalItens()), true));
+            linhas.append(linhaTotal("Total geral", formatarMoeda(financeiro.getTotalFinal()), true));
         }
         linhas.append(linhaTotal("Total final", formatarMoeda(financeiro.getTotalFinal()), true));
 
         Map<String, String> dados = contextoBase();
-        dados.put("CABECALHO_DOCUMENTO", cabecalho(orcamento));
+        dados.put("SECTION_CLASS", "doc-section-inline");
         dados.put("LINHAS_TOTAIS", linhas.toString());
-        dados.put("VALOR_A_VISTA", esc(formatarMoeda(financeiro.getValorAVista())));
-        dados.put("VALOR_ENTRADA", esc(formatarMoeda(financeiro.getEntrada50pct())));
-        dados.put("VALOR_RESTANTE", esc(formatarMoeda(financeiro.getRestante50pct())));
-        dados.put("DESCRICAO_RESTANTE", esc(valor(financeiro.getDescricaoRestante())));
+        dados.put("MEIO_PAGAMENTO_ITEM", meioPagamentoItem(financeiro));
         dados.put("PRAZO_PRODUCAO", esc(prazoProducao(orcamento)));
         dados.put("NOME_CLIENTE", esc(nomeCliente(orcamento)));
         dados.put("RESPONSAVEL_TECNICO", esc(responsavelTecnico));
-        dados.put("SECAO_AVISOS", paginaAvisos(orcamento, observacoes));
-        dados.put("RODAPE", rodape());
+        String obsItens = obsDocumentoItens(observacoesDocumento);
+        dados.put("SECAO_OBS_DOCUMENTO", isBlank(obsItens) ? "" :
+            "<section class=\"pdf-module module-with-divider no-break\">" +
+            "<div class=\"section-header\"><h2 class=\"section-title\">Observações Importantes</h2></div>" +
+            "<ul class=\"commercial-obs-list\">" + obsItens + "</ul>" +
+            "</section>");
 
         return renderizar("totais.html", dados);
     }
 
-    private String observacoesHtml(List<ObservacaoOrcamento> observacoes) {
-        if (observacoes == null || observacoes.isEmpty()) {
-            return "<li class=\"observation-item\">Nenhuma observação adicional selecionada.</li>";
+    private String meioPagamentoItem(Financeiro financeiro) {
+        String titulo = financeiro.getMeioPagamentoTitulo();
+        String descricao = financeiro.getMeioPagamentoDescricao();
+        if (isBlank(titulo)) {
+            return "";
         }
-
-        StringBuilder itens = new StringBuilder();
-        for (ObservacaoOrcamento observacao : observacoes) {
-            Map<String, String> dadosItem = contextoBase();
-            dadosItem.put("TEXTO_OBSERVACAO", esc(observacao.getTexto()));
-            itens.append(renderizar("observacao-item.html", dadosItem));
+        StringBuilder sb = new StringBuilder();
+        sb.append("<li class=\"payment-item\">");
+        sb.append("<span class=\"payment-item__label\">").append(esc(titulo)).append("</span>");
+        if (!isBlank(descricao)) {
+            sb.append("<span class=\"payment-item__value\">").append(esc(descricao)).append("</span>");
         }
-
-        Map<String, String> dados = contextoBase();
-        dados.put("ITENS_OBSERVACOES", itens.toString());
-        return renderizar("observacoes.html", dados);
+        sb.append("</li>");
+        return sb.toString();
     }
 
     private String responsavelTecnico(Orcamento orcamento) {
@@ -608,6 +692,25 @@ public class OrcamentoDocumentoService {
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
+    }
+
+    private String obsDocumentoItens(String texto) {
+        if (isBlank(texto)) return "";
+        StringBuilder sb = new StringBuilder();
+        for (String linha : texto.split("\n")) {
+            String limpa = linha.strip();
+            if (!limpa.isEmpty()) {
+                sb.append("<li>").append(esc(limpa)).append("</li>");
+            }
+        }
+        return sb.toString();
+    }
+
+    /** Retorna true somente se o título for um texto descritivo, não um nome de arquivo. */
+    private boolean tituloValido(String titulo) {
+        if (isBlank(titulo)) return false;
+        String lower = titulo.toLowerCase(Locale.ROOT);
+        return !lower.matches(".*\\.(jpg|jpeg|png|webp|gif|bmp|tiff|svg)$");
     }
 
     private String esc(String value) {

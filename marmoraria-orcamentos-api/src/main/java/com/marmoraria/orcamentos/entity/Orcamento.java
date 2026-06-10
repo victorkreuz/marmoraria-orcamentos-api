@@ -94,6 +94,6 @@ public class Orcamento {
     private BigDecimal valorFrete;
 
     @NotNull(message = "Status do orcamento e obrigatorio")
-    @Enumerated(EnumType.ORDINAL)
+    @Enumerated(EnumType.STRING)
     private StatusOrcamento statusOrcamento;
 }

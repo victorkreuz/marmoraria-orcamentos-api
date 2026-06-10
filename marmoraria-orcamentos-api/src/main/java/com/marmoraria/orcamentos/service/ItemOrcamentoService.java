@@ -7,6 +7,7 @@ import com.marmoraria.orcamentos.repository.ItemOrcamentoRepository;
 import com.marmoraria.orcamentos.repository.OrcamentoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -19,6 +20,7 @@ public class ItemOrcamentoService {
     @Autowired
     OrcamentoRepository orcamentoRepository;
 
+    @Transactional
     public ItemOrcamento salvar(ItemOrcamento itemOrcamento) {
         calcularValorTotal(itemOrcamento);
         ItemOrcamento itemSalvo = itemOrcamentoRepository.save(itemOrcamento);
@@ -35,6 +37,7 @@ public class ItemOrcamentoService {
         return itemOrcamentoRepository.findAll();
     }
 
+    @Transactional
     public ItemOrcamento editar(ItemOrcamento itemOrcamento) {
         ItemOrcamento itemExistente = buscarPorId(itemOrcamento.getId());
         if (itemOrcamento.getOrcamento() == null) {
@@ -46,6 +49,7 @@ public class ItemOrcamentoService {
         return itemSalvo;
     }
 
+    @Transactional
     public void excluir(Long id) {
         ItemOrcamento item = buscarPorId(id);
         Long orcamentoId = item.getOrcamento() == null ? null : item.getOrcamento().getId();

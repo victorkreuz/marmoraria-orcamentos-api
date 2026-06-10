@@ -1,2 +1,41 @@
+# ================================
+# IDE
+# ================================
 .idea/
 *.iml
+*.iws
+*.ipr
+.vscode/
+
+# ================================
+# Build
+# ================================
+target/
+build/
+out/
+
+# ================================
+# Environment e credenciais
+# ================================
+.env
+.env.*
+*.env
+secrets.properties
+
+# ================================
+# Configs locais (nunca commitar)
+# ================================
+**/application-local.properties
+**/application-dev.properties
+
+# ================================
+# Maven wrapper jar (gerado no build)
+# ================================
+.mvn/wrapper/maven-wrapper.jar
+
+# ================================
+# Logs e temp
+# ================================
+*.log
+logs/
+tomcat/
