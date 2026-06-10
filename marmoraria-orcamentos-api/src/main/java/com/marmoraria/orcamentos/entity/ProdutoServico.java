@@ -1,13 +1,11 @@
 package com.marmoraria.orcamentos.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
+import jakarta.persistence.Enumerated;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,6 +27,7 @@ public class ProdutoServico {
     private String nome;
 
     @NotNull(message = "Unidade de medida e obrigatoria")
+    @Enumerated(EnumType.STRING)
     private UnidadeMedida unidadeMedida;
 
     @NotNull(message = "Valor unitario e obrigatorio")
