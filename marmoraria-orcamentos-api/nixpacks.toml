@@ -1,0 +1,11 @@
+# Railway usa Nixpacks para build automatico de projetos Spring Boot.
+# Este arquivo instala o Chromium necessario para geracao de PDF.
+
+[phases.setup]
+nixPkgs = ["chromium", "jdk17"]
+
+[phases.build]
+cmds = ["./mvnw package -DskipTests"]
+
+[start]
+cmd = "java -jar target/orcamentos-0.0.1-SNAPSHOT.jar"

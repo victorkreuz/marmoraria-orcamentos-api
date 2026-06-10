@@ -32,7 +32,7 @@ public class ProdutoServico {
     private UnidadeMedida unidadeMedida;
 
     @NotNull(message = "Valor unitario e obrigatorio")
-    @DecimalMin(value = "0.01", message = "Valor unitario deve ser maior que zero")
+    @DecimalMin(value = "0.00", message = "Valor unitario nao pode ser negativo")
     private BigDecimal valorUnitario;
 
     private String imagemPath;

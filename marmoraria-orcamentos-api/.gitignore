@@ -33,5 +33,13 @@ build/
 ### VS Code ###
 .vscode/
 
-### Local config ###
+### Local config (nunca commitar — usa application-prod.properties para producao) ###
 **/application.properties
+**/application-local.properties
+**/application-dev.properties
+
+### Environment e credenciais ###
+.env
+.env.*
+*.env
+secrets.properties

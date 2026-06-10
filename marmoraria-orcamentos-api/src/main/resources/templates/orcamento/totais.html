@@ -1,5 +1,4 @@
-<section id="page-payment" class="doc-page page-break">
-    [[CABECALHO_DOCUMENTO]]
+<section id="page-payment" class="[[SECTION_CLASS]]">
 
     <section id="payment-methods" class="pdf-module module-payment-methods no-break">
         <div class="section-header">
@@ -7,17 +6,12 @@
         </div>
 
         <ul class="payment-list">
-            <li class="payment-item">
-                <span class="payment-item__label">Valor à vista</span>
-                <span class="payment-item__value">[[VALOR_A_VISTA]]</span>
+            [[MEIO_PAGAMENTO_ITEM]]
+            <li class="payment-item payment-item--full">
+                <span class="payment-item__label">Prazo de produção</span>
+                <span class="payment-item__value">[[PRAZO_PRODUCAO]]</span>
             </li>
-
-            <li class="payment-item">
-                <span class="payment-item__label">Entrada + Saldo</span>
-                <span class="payment-item__value">[[VALOR_ENTRADA]] na aprovação do orçamento e [[VALOR_RESTANTE]] - [[DESCRICAO_RESTANTE]].</span>
-            </li>
-
-            <li class="payment-item">
+            <li class="payment-item payment-item--full">
                 <span class="payment-item__label">Resumo financeiro</span>
                 <span class="payment-item__value">
                     <table class="totals-table">
@@ -25,15 +19,40 @@
                     </table>
                 </span>
             </li>
-
-            <li class="payment-item">
-                <span class="payment-item__label">Prazo de produção</span>
-                <span class="payment-item__value">[[PRAZO_PRODUCAO]]</span>
-            </li>
         </ul>
     </section>
 
-    [[SECAO_AVISOS]]
+    [[SECAO_OBS_DOCUMENTO]]
+
+    <section id="approval-cta" class="pdf-module module-with-divider no-break">
+        <div class="section-header">
+            <h2 class="section-title">Como Aprovar Este Orçamento</h2>
+        </div>
+        <ol class="cta-steps">
+            <li class="cta-step">
+                <span class="cta-step__num">1</span>
+                <div>
+                    <p class="cta-step__title">Confirme a aprovação</p>
+                    <p class="cta-step__desc">Entre em contato pelo WhatsApp ou e-mail informando a aprovação do orçamento.</p>
+                </div>
+            </li>
+            <li class="cta-step">
+                <span class="cta-step__num">2</span>
+                <div>
+                    <p class="cta-step__title">Realize o pagamento</p>
+                    <p class="cta-step__desc">Efetue o pagamento conforme a condição acordada para dar início à produção.</p>
+                </div>
+            </li>
+            <li class="cta-step">
+                <span class="cta-step__num">3</span>
+                <div>
+                    <p class="cta-step__title">Agendamento</p>
+                    <p class="cta-step__desc">Nossa equipe entrará em contato para agendar a medição final e a instalação.</p>
+                </div>
+            </li>
+        </ol>
+        <p class="cta-contact">[[EMPRESA_TELEFONE]] &nbsp;|&nbsp; [[EMPRESA_EMAIL]] &nbsp;|&nbsp; [[EMPRESA_INSTAGRAM]]</p>
+    </section>
 
     <section id="signatures" class="pdf-module module-signatures module-with-divider no-break">
         <div class="signatures-grid">
@@ -55,5 +74,4 @@
         </div>
     </section>
 
-    [[RODAPE]]
 </section>

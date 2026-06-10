@@ -1,5 +1,6 @@
 package com.marmoraria.orcamentos.service;
 
+import com.marmoraria.orcamentos.entity.Financeiro;
 import com.marmoraria.orcamentos.entity.ItemOrcamento;
 import com.marmoraria.orcamentos.entity.Orcamento;
 import com.marmoraria.orcamentos.exception.ResourceNotFoundException;
@@ -47,7 +48,7 @@ public class OrcamentoService {
         orcamentoRepository.deleteById(id);
     }
 
-    private void calcularValorTotal(Orcamento orcamento) {
+    public void calcularValorTotal(Orcamento orcamento) {
         BigDecimal totalItens = BigDecimal.ZERO;
         List<ItemOrcamento> itens = orcamento.getItemOrcamentoList();
 
@@ -72,6 +73,14 @@ public class OrcamentoService {
         }
 
         orcamento.setValorTotal(valorTotal);
+
+        Financeiro financeiro = orcamento.getFinanceiro();
+        if (financeiro == null) {
+            financeiro = new Financeiro();
+            orcamento.setFinanceiro(financeiro);
+        }
+        financeiro.setSubtotalItens(totalItens);
+        financeiro.setTotalFinal(valorTotal);
     }
 
     private BigDecimal valorOuZero(BigDecimal valor) {
