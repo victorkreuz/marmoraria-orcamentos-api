@@ -1,5 +1,6 @@
 package com.marmoraria.orcamentos.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.DecimalMin;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,10 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @Builder
 public class Financeiro {
+
+    @Column(name = "valor_a_vista")
+    private BigDecimal valorAVista;
+
     @DecimalMin(value = "0.00", message = "Subtotal dos itens nao pode ser negativo")
     private BigDecimal subtotalItens;
 
@@ -33,7 +38,6 @@ public class Financeiro {
     private BigDecimal adendos;
 
     private BigDecimal totalFinal;
-    private BigDecimal valorAVista;
     private BigDecimal entrada50pct;
     private BigDecimal restante50pct;
     private String descricaoRestante;
