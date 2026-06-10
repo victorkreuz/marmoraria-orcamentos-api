@@ -19,7 +19,7 @@ public class Usuario {
 
     private String userName;
     private String senha;
-    
+
     @Enumerated(EnumType.STRING)
     private TipoUsuario tipoUsuario;
 }
