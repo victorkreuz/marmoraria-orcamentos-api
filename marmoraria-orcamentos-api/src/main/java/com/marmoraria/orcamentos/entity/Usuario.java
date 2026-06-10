@@ -1,9 +1,6 @@
 package com.marmoraria.orcamentos.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,5 +19,7 @@ public class Usuario {
 
     private String userName;
     private String senha;
+    
+    @Enumerated(EnumType.STRING)
     private TipoUsuario tipoUsuario;
 }
