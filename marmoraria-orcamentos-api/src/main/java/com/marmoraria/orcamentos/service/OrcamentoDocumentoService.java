@@ -135,8 +135,10 @@ public class OrcamentoDocumentoService {
         comando.add(modoHeadless);
         comando.add("--no-sandbox");
         comando.add("--disable-setuid-sandbox");
+        comando.add("--no-zygote");
         comando.add("--disable-gpu");
         comando.add("--disable-dev-shm-usage");
+        comando.add("--disable-extensions");
         comando.add("--run-all-compositor-stages-before-draw");
         comando.add("--virtual-time-budget=1000");
         comando.add("--allow-file-access-from-files");
@@ -183,14 +185,18 @@ public class OrcamentoDocumentoService {
             }
         }
 
-        // Tenta localizar via PATH do sistema (Linux com Nixpacks)
-        try {
-            Process p = new ProcessBuilder("which", "chromium").redirectErrorStream(true).start();
-            if (p.waitFor(3, TimeUnit.SECONDS) && p.exitValue() == 0) {
-                String resultado = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
-                if (!resultado.isBlank()) return resultado;
+        // Tenta localizar via PATH do sistema (Linux/Nix — "which" pode não existir)
+        String[] buscas = {"chromium", "chromium-browser", "google-chrome-stable", "google-chrome"};
+        for (String bin : buscas) {
+            try {
+                Process p = new ProcessBuilder("bash", "-c", "command -v " + bin)
+                        .redirectErrorStream(true).start();
+                if (p.waitFor(3, TimeUnit.SECONDS) && p.exitValue() == 0) {
+                    String resultado = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+                    if (!resultado.isBlank()) return resultado;
+                }
+            } catch (Exception ignored) {
             }
-        } catch (Exception ignored) {
         }
 
         return null;
