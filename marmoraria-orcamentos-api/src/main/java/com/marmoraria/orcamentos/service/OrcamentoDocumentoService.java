@@ -133,6 +133,8 @@ public class OrcamentoDocumentoService {
         List<String> comando = new ArrayList<>();
         comando.add(navegador);
         comando.add(modoHeadless);
+        comando.add("--no-sandbox");
+        comando.add("--disable-setuid-sandbox");
         comando.add("--disable-gpu");
         comando.add("--disable-dev-shm-usage");
         comando.add("--run-all-compositor-stages-before-draw");
