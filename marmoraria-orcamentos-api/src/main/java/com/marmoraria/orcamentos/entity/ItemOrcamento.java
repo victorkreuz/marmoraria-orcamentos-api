@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.CascadeType;
@@ -68,7 +69,7 @@ public class ItemOrcamento {
     private String imagemUrl;
 
     @com.fasterxml.jackson.annotation.JsonManagedReference("item-imagens")
-    @OneToMany(mappedBy = "itemOrcamento", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "itemOrcamento", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @OrderBy("ordem ASC, id ASC")
     private List<ItemOrcamentoImagem> imagens;
 
