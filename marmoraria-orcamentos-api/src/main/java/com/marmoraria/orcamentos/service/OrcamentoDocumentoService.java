@@ -85,8 +85,8 @@ public class OrcamentoDocumentoService {
         String html = gerarHtml(orcamentoId, request);
         try {
             return gerarPdfComNavegador(html);
-        } catch (Exception ignored) {
-            throw new IllegalStateException("Nao foi possivel gerar o PDF igual a pre-visualizacao HTML. Verifique se Chrome ou Edge esta instalado no servidor.", ignored);
+        } catch (Exception e) {
+            throw new IllegalStateException("Falha ao gerar PDF: " + e.getMessage(), e);
         }
     }
 
