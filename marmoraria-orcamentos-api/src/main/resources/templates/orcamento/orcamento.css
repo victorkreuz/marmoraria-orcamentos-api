@@ -353,8 +353,10 @@ body,
 
 .client-grid {
     display: grid;
-    gap: 10px 16px;
+    gap: 0;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-top: 1px solid #c8ccd2;
+    border-left: 1px solid #c8ccd2;
 }
 
 .client-grid--3col {
@@ -365,10 +367,15 @@ body,
     display: flex;
     flex-direction: column;
     gap: 2px;
+    border-right: 1px solid #c8ccd2;
+    border-bottom: 1px solid #c8ccd2;
+    padding: 5px 8px;
+    min-height: 34px;
 }
 
 .info-block--full {
-    margin-top: 12px;
+    grid-column: 1 / -1;
+    margin-top: 0;
 }
 
 .info-block__label {
@@ -719,6 +726,11 @@ body,
     color: var(--color-dark-gray);
     font-size: var(--paragraph-size);
     line-height: 1.6;
+}
+
+.module-signatures {
+    page-break-before: avoid;
+    break-before: avoid;
 }
 
 .signatures-grid {

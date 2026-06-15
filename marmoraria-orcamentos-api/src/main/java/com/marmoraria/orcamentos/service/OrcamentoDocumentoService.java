@@ -69,11 +69,11 @@ public class OrcamentoDocumentoService {
         dados.put("CABECALHO_GLOBAL", cabecalho(orcamento));
         dados.put("RODAPE_GLOBAL", rodape());
         dados.put("PAGINA_CAPA", opcoes.isImprimirCapaAtivo() ? paginaCapa(orcamento) : "");
-        dados.put("PAGINA_RESUMO", opcoes.isImprimirResumoAtivo() ? paginaResumo(orcamento) : "");
-        dados.put("PAGINA_IDENTIFICACAO", paginaIdentificacao(orcamento, opcoes, responsavelTecnico));
+        dados.put("PAGINA_RESUMO", "");
+        dados.put("PAGINA_IDENTIFICACAO", paginaIdentificacao(orcamento, responsavelTecnico));
         dados.put("PAGINA_PROJETO", "");
         dados.put("PAGINA_AVISOS", "");
-        dados.put("PAGINA_ITENS", opcoes.isPularItensAtivo() ? "" : paginaItens(orcamento, opcoes));
+        dados.put("PAGINA_ITENS", paginaItens(orcamento, opcoes));
         String obsDocumento = (request != null && !isBlank(request.getObservacoesDocumento()))
                 ? request.getObservacoesDocumento() : null;
         dados.put("PAGINA_TOTAIS", paginaTotais(orcamento, opcoes, responsavelTecnico, obsDocumento));
@@ -215,9 +215,6 @@ public class OrcamentoDocumentoService {
         if (opcoes.getImprimirCapa() == null) {
             opcoes.setImprimirCapa(false);
         }
-        if (opcoes.getOrcamentoObjetivo() == null) {
-            opcoes.setOrcamentoObjetivo(false);
-        }
         if (opcoes.getImprimirTotal() == null) {
             opcoes.setImprimirTotal(true);
         }
@@ -304,7 +301,7 @@ public class OrcamentoDocumentoService {
         return renderizar("resumo.html", dados);
     }
 
-    private String paginaIdentificacao(Orcamento orcamento, OpcoesGeracaoRequest opcoes, String responsavelTecnico) {
+    private String paginaIdentificacao(Orcamento orcamento, String responsavelTecnico) {
         Cliente cliente = orcamento.getCliente();
         LocalDate vencimento = dataVencimento(orcamento);
 
@@ -316,20 +313,31 @@ public class OrcamentoDocumentoService {
         dados.put("DATA_EMISSAO", esc(formatarData(orcamento.getDataEmissao())));
         dados.put("VALIDADE_DIAS", esc(validadeTexto(orcamento)));
         dados.put("DATA_VENCIMENTO", esc(formatarData(vencimento)));
-        dados.put("SECAO_PROJETO", opcoes.isOrcamentoObjetivoAtivo() ? "" : paginaProjeto(orcamento, responsavelTecnico));
+        dados.put("SECAO_PROJETO", paginaProjeto(orcamento, responsavelTecnico));
 
         return renderizar("identificacao.html", dados);
     }
 
     private String camposClienteExtras(Cliente cliente) {
-        if (cliente == null) return "";
         StringBuilder sb = new StringBuilder();
-        infoBlockSe(sb, "CPF / CNPJ", cliente.getCpfCnpj());
-        infoBlockSe(sb, "Endereço", cliente.getEndereco());
-        infoBlockSe(sb, "Cidade / UF", cliente.getCidade());
-        infoBlockSe(sb, "Telefone", cliente.getTelefone());
-        infoBlockSe(sb, "E-mail", cliente.getEmail());
+        String cpf = cliente != null ? cliente.getCpfCnpj() : null;
+        String endereco = cliente != null ? cliente.getEndereco() : null;
+        String cidade = cliente != null ? cliente.getCidade() : null;
+        String telefone = cliente != null ? cliente.getTelefone() : null;
+        String email = cliente != null ? cliente.getEmail() : null;
+        infoBlockSempre(sb, "CPF / CNPJ", cpf);
+        infoBlockSe(sb, "Endereço", endereco);
+        infoBlockSe(sb, "Cidade / UF", cidade);
+        infoBlockSempre(sb, "Telefone", telefone);
+        infoBlockSe(sb, "E-mail", email);
         return sb.toString();
+    }
+
+    private void infoBlockSempre(StringBuilder sb, String label, String value) {
+        sb.append("<div class=\"info-block\">")
+          .append("<span class=\"info-block__label\">").append(esc(label)).append("</span>")
+          .append("<span class=\"info-block__value\">").append(isBlank(value) ? "&nbsp;" : esc(value)).append("</span>")
+          .append("</div>");
     }
 
     private void infoBlockSe(StringBuilder sb, String label, String value) {
