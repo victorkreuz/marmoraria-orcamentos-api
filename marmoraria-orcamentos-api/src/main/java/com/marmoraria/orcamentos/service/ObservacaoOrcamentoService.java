@@ -5,6 +5,7 @@ import com.marmoraria.orcamentos.exception.ResourceNotFoundException;
 import com.marmoraria.orcamentos.repository.ObservacaoOrcamentoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -56,6 +57,7 @@ public class ObservacaoOrcamentoService {
         return observacaoRepository.save(existente);
     }
 
+    @Transactional
     public void excluir(Long id) {
         ObservacaoOrcamento observacao = buscarPorId(id);
         if (observacao.getOrcamentos() != null && !observacao.getOrcamentos().isEmpty()) {
