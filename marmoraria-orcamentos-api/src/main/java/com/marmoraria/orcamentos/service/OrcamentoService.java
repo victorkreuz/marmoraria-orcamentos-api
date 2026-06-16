@@ -2,9 +2,11 @@ package com.marmoraria.orcamentos.service;
 
 import com.marmoraria.orcamentos.entity.Financeiro;
 import com.marmoraria.orcamentos.entity.ItemOrcamento;
+import com.marmoraria.orcamentos.entity.MeioPagamento;
 import com.marmoraria.orcamentos.entity.Orcamento;
 import com.marmoraria.orcamentos.exception.ResourceNotFoundException;
 import com.marmoraria.orcamentos.repository.ItemOrcamentoRepository;
+import com.marmoraria.orcamentos.repository.MeioPagamentoRepository;
 import com.marmoraria.orcamentos.repository.OrcamentoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,9 @@ public class OrcamentoService {
 
     @Autowired
     ItemOrcamentoService itemOrcamentoService;
+
+    @Autowired
+    MeioPagamentoRepository meioPagamentoRepository;
 
     public Orcamento salvar(Orcamento orcamento) {
         calcularValorTotal(orcamento);
@@ -81,6 +86,20 @@ public class OrcamentoService {
         }
         financeiro.setSubtotalItens(totalItens);
         financeiro.setTotalFinal(valorTotal);
+        preencherMeioPagamento(financeiro);
+    }
+
+    private void preencherMeioPagamento(Financeiro financeiro) {
+        Long id = financeiro.getMeioPagamentoId();
+        if (id == null) {
+            financeiro.setMeioPagamentoTitulo(null);
+            financeiro.setMeioPagamentoDescricao(null);
+            return;
+        }
+        meioPagamentoRepository.findById(id).ifPresent(mp -> {
+            financeiro.setMeioPagamentoTitulo(mp.getTitulo());
+            financeiro.setMeioPagamentoDescricao(mp.getDescricao());
+        });
     }
 
     private BigDecimal valorOuZero(BigDecimal valor) {
