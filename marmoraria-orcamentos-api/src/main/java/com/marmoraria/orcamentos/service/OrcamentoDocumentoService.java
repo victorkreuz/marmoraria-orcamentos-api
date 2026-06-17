@@ -41,8 +41,8 @@ public class OrcamentoDocumentoService {
     private static final String EMPRESA_BAIRRO = "Campina das Missões";
     private static final String EMPRESA_CIDADE = "Campina das Missões";
     private static final String EMPRESA_ESTADO = "RS";
-    private static final String EMPRESA_CEP = "-";
-    private static final String EMPRESA_CNPJ = "-";
+    private static final String EMPRESA_CEP = "98975-000";
+    private static final String EMPRESA_CNPJ = "08.369.433/0001-20";
     private static final String EMPRESA_INSCRICAO_ESTADUAL = "-";
     private static final String EMPRESA_TELEFONE = "(55) 99651-5484";
     private static final String EMPRESA_INSTAGRAM = "@gauchamarmoresegranitos";
