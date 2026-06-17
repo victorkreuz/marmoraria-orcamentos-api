@@ -441,6 +441,10 @@ body,
     text-transform: uppercase;
 }
 
+.product-thumb.image-placeholder {
+    min-height: unset;
+}
+
 #product-table {
     margin-top: 0;
     page-break-inside: auto;

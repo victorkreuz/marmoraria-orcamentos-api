@@ -438,9 +438,8 @@ public class OrcamentoDocumentoService {
             linhas.append(linhaTotal("Adendos / Acréscimos", formatarMoeda(financeiro.getAdendos()), false));
         }
         if (opcoes.isImprimirTotalAtivo()) {
-            linhas.append(linhaTotal("Total geral", formatarMoeda(financeiro.getTotalFinal()), true));
+            linhas.append(linhaTotal("Total final", formatarMoeda(financeiro.getTotalFinal()), true));
         }
-        linhas.append(linhaTotal("Total final", formatarMoeda(financeiro.getTotalFinal()), true));
 
         Map<String, String> dados = contextoBase();
         dados.put("SECTION_CLASS", "doc-section-inline");
