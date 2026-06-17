@@ -413,8 +413,7 @@ public class OrcamentoDocumentoService {
         Map<String, String> dados = contextoBase();
         dados.put("SECTION_CLASS", "doc-section-inline");
         dados.put("ITENS_ORCAMENTO", itensHtml.isEmpty() ? linhaTabelaVazia("Nenhum item cadastrado neste orçamento.") : itensHtml.toString());
-        dados.put("DESCONTO_VALOR", esc(formatarMoeda(financeiro.getDescontoValorReais())));
-        dados.put("TOTAL_FINAL", esc(formatarMoeda(financeiro.getTotalFinal())));
+        dados.put("TFOOT_TOTAIS", opcoes.isImprimirTotalAtivo() ? tfootTotais(financeiro) : "");
 
         return renderizar("itens.html", dados);
     }
@@ -456,6 +455,20 @@ public class OrcamentoDocumentoService {
             "</section>");
 
         return renderizar("totais.html", dados);
+    }
+
+    private String tfootTotais(Financeiro financeiro) {
+        return "<tfoot><tr><td colspan=\"6\">" +
+               "<div class=\"products-summary\">" +
+               "<div class=\"products-summary__item products-summary__discount\">" +
+               "<span class=\"products-summary__label\">Desconto:</span>" +
+               "<span class=\"products-summary__value\">" + esc(formatarMoeda(financeiro.getDescontoValorReais())) + "</span>" +
+               "</div>" +
+               "<div class=\"products-summary__item products-summary__total\">" +
+               "<span class=\"products-summary__label\">Total Geral:</span>" +
+               "<span class=\"products-summary__value\">" + esc(formatarMoeda(financeiro.getTotalFinal())) + "</span>" +
+               "</div>" +
+               "</div></td></tr></tfoot>";
     }
 
     private String meioPagamentoItem(Financeiro financeiro) {
