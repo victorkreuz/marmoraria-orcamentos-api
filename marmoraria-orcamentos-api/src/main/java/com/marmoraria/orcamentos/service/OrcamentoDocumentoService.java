@@ -70,7 +70,7 @@ public class OrcamentoDocumentoService {
         dados.put("RODAPE_GLOBAL", rodape());
         dados.put("PAGINA_CAPA", opcoes.isImprimirCapaAtivo() ? paginaCapa(orcamento) : "");
         dados.put("PAGINA_RESUMO", "");
-        dados.put("PAGINA_IDENTIFICACAO", paginaIdentificacao(orcamento, responsavelTecnico));
+        dados.put("PAGINA_IDENTIFICACAO", paginaIdentificacao(orcamento, responsavelTecnico, opcoes));
         dados.put("PAGINA_PROJETO", "");
         dados.put("PAGINA_AVISOS", "");
         dados.put("PAGINA_ITENS", paginaItens(orcamento, opcoes));
@@ -301,7 +301,7 @@ public class OrcamentoDocumentoService {
         return renderizar("resumo.html", dados);
     }
 
-    private String paginaIdentificacao(Orcamento orcamento, String responsavelTecnico) {
+    private String paginaIdentificacao(Orcamento orcamento, String responsavelTecnico, OpcoesGeracaoRequest opcoes) {
         Cliente cliente = orcamento.getCliente();
         LocalDate vencimento = dataVencimento(orcamento);
 
@@ -313,7 +313,7 @@ public class OrcamentoDocumentoService {
         dados.put("DATA_EMISSAO", esc(formatarData(orcamento.getDataEmissao())));
         dados.put("VALIDADE_DIAS", esc(validadeTexto(orcamento)));
         dados.put("DATA_VENCIMENTO", esc(formatarData(vencimento)));
-        dados.put("SECAO_PROJETO", paginaProjeto(orcamento, responsavelTecnico));
+        dados.put("SECAO_PROJETO", opcoes.isImprimirProjetoAtivo() ? paginaProjeto(orcamento, responsavelTecnico) : "");
 
         return renderizar("identificacao.html", dados);
     }
