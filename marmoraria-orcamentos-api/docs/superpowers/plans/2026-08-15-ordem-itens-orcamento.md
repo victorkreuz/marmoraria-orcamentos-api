@@ -175,6 +175,14 @@ Expected: FAIL — `assertThat(primeiro.getOrdem()).isEqualTo(0)` fails because 
 In `src/main/java/com/marmoraria/orcamentos/service/OrcamentoService.java`, inside `calcularValorTotal(Orcamento orcamento)`:
 
 ```java
+    public void calcularValorTotal(Orcamento orcamento) {
+        BigDecimal totalItens = BigDecimal.ZERO;
+        List<ItemOrcamento> itens = orcamento.getItemOrcamentoList();
+
+        if ((itens == null || itens.isEmpty()) && orcamento.getId() != null) {
+            itens = itemOrcamentoRepository.findByOrcamentoId(orcamento.getId());
+        }
+
         if (itens != null) {
             for (ItemOrcamento item : itens) {
                 item.setOrcamento(orcamento);
@@ -187,16 +195,29 @@ In `src/main/java/com/marmoraria/orcamentos/service/OrcamentoService.java`, insi
 becomes:
 
 ```java
+    public void calcularValorTotal(Orcamento orcamento) {
+        BigDecimal totalItens = BigDecimal.ZERO;
+        List<ItemOrcamento> itens = orcamento.getItemOrcamentoList();
+        boolean itensFornecidosPeloChamador = itens != null && !itens.isEmpty();
+
+        if (!itensFornecidosPeloChamador && orcamento.getId() != null) {
+            itens = itemOrcamentoRepository.findByOrcamentoId(orcamento.getId());
+        }
+
         if (itens != null) {
             for (int i = 0; i < itens.size(); i++) {
                 ItemOrcamento item = itens.get(i);
                 item.setOrcamento(orcamento);
-                item.setOrdem(i);
+                if (itensFornecidosPeloChamador) {
+                    item.setOrdem(i);
+                }
                 itemOrcamentoService.calcularValorTotal(item);
                 totalItens = totalItens.add(item.getValorTotal());
             }
         }
 ```
+
+**Note (added after code review):** the `if (itensFornecidosPeloChamador)` guard is not in the original design — it was added because the fallback branch above (fetching existing items via `itemOrcamentoRepository.findByOrcamentoId`, which has no `ORDER BY`) would otherwise persist items in whatever arbitrary order Postgres returns them whenever the caller's request omits `itemOrcamentoList` for an existing orçamento. Since that branch means the caller expressed no ordering intent at all, the safest behavior is to leave those items' existing `ordem` values untouched rather than reassign them from an unordered read.
 
 - [ ] **Step 4: Run the test to verify it passes**
 
@@ -206,7 +227,28 @@ becomes:
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Also test the fallback path doesn't scramble existing order**
+
+Add to `OrcamentoServiceTest.java` (needs `import static org.mockito.Mockito.when;` if not already present):
+
+```java
+    @Test
+    void calcularValorTotalNaoReatribuiOrdemQuandoItensVemDoFallback() {
+        orcamento.setId(1L);
+        orcamento.setItemOrcamentoList(null);
+
+        ItemOrcamento existente = new ItemOrcamento();
+        existente.setValorTotal(new BigDecimal("10.00"));
+        existente.setOrdem(5);
+        when(itemOrcamentoRepository.findByOrcamentoId(1L)).thenReturn(List.of(existente));
+
+        service.calcularValorTotal(orcamento);
+
+        assertThat(existente.getOrdem()).isEqualTo(5);
+    }
+```
+
+- [ ] **Step 6: Commit**
 
 ```bash
 git add src/main/java/com/marmoraria/orcamentos/service/OrcamentoService.java src/test/java/com/marmoraria/orcamentos/service/OrcamentoServiceTest.java
