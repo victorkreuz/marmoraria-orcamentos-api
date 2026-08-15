@@ -39,12 +39,12 @@ This is a pure refactor — same behavior, moved so Task 2 can reuse it without 
 
 - [ ] **Step 1: Create the shared utility**
 
-Create `src/main/java/com/marmoraria/orcamentos/util/OrcamentoDatas.java`:
+**Note (updated after Task 1's code review):** this lives in the `entity` package, not `util` — putting a class that both imports `Orcamento` and is imported back by `Orcamento` (Task 2) in a separate `util` package creates a circular package dependency. Same package on both sides avoids it entirely, with no behavior difference.
+
+Create `src/main/java/com/marmoraria/orcamentos/entity/OrcamentoDatas.java`:
 
 ```java
-package com.marmoraria.orcamentos.util;
-
-import com.marmoraria.orcamentos.entity.Orcamento;
+package com.marmoraria.orcamentos.entity;
 
 import java.time.LocalDate;
 
@@ -68,10 +68,10 @@ This is an exact copy of the private `dataVencimento(Orcamento)` method already 
 
 In `src/main/java/com/marmoraria/orcamentos/service/OrcamentoDocumentoService.java`:
 
-Add the import, alongside the other `com.marmoraria.orcamentos.*` imports near the top:
+Add the import, alongside the other `com.marmoraria.orcamentos.entity.*` imports near the top:
 
 ```java
-import com.marmoraria.orcamentos.util.OrcamentoDatas;
+import com.marmoraria.orcamentos.entity.OrcamentoDatas;
 ```
 
 There are three call sites of the private method, each a line like `dataVencimento(orcamento)`. Replace each with `OrcamentoDatas.vencimento(orcamento)`:
@@ -211,11 +211,7 @@ Expected: FAIL to compile — `cannot find symbol: method getStatusExibicao()` (
 
 In `src/main/java/com/marmoraria/orcamentos/entity/Orcamento.java`:
 
-Add the import, alongside the other `com.marmoraria.orcamentos.*`-adjacent imports (it can go right after the `com.fasterxml.jackson.annotation.JsonManagedReference` import at the top):
-
-```java
-import com.marmoraria.orcamentos.util.OrcamentoDatas;
-```
+No new import needed — `OrcamentoDatas` now lives in the same `entity` package as `Orcamento` (see the updated Task 1 above), so it's directly accessible.
 
 Add the method at the end of the class, right after the existing `statusOrcamento` field (this is the last field in the class):
 
