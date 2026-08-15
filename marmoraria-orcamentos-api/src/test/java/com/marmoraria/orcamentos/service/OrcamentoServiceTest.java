@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OrcamentoServiceTest {
@@ -162,5 +163,36 @@ class OrcamentoServiceTest {
         assertThatThrownBy(() -> service.calcularValorTotal(orcamento))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Validade deve ser 15 ou 30 dias");
+    }
+
+    @Test
+    void calcularValorTotalAtribuiOrdemPelaPosicaoNaLista() {
+        ItemOrcamento primeiro = new ItemOrcamento();
+        primeiro.setValorTotal(new BigDecimal("10.00"));
+
+        ItemOrcamento segundo = new ItemOrcamento();
+        segundo.setValorTotal(new BigDecimal("20.00"));
+
+        orcamento.setItemOrcamentoList(List.of(primeiro, segundo));
+
+        service.calcularValorTotal(orcamento);
+
+        assertThat(primeiro.getOrdem()).isEqualTo(0);
+        assertThat(segundo.getOrdem()).isEqualTo(1);
+    }
+
+    @Test
+    void calcularValorTotalNaoReatribuiOrdemQuandoItensVemDoFallback() {
+        orcamento.setId(1L);
+        orcamento.setItemOrcamentoList(null);
+
+        ItemOrcamento existente = new ItemOrcamento();
+        existente.setValorTotal(new BigDecimal("10.00"));
+        existente.setOrdem(5);
+        when(itemOrcamentoRepository.findByOrcamentoId(1L)).thenReturn(List.of(existente));
+
+        service.calcularValorTotal(orcamento);
+
+        assertThat(existente.getOrdem()).isEqualTo(5);
     }
 }
