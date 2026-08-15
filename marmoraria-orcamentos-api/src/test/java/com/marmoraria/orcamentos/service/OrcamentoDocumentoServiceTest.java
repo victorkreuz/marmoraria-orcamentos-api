@@ -3,6 +3,7 @@ package com.marmoraria.orcamentos.service;
 import com.marmoraria.orcamentos.entity.Cliente;
 import com.marmoraria.orcamentos.entity.ItemOrcamento;
 import com.marmoraria.orcamentos.entity.Orcamento;
+import com.marmoraria.orcamentos.entity.Projeto;
 import com.marmoraria.orcamentos.entity.StatusOrcamento;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,5 +68,63 @@ class OrcamentoDocumentoServiceTest {
         assertThat(posicaoPrimeiro).isPositive();
         assertThat(posicaoSegundo).isPositive();
         assertThat(posicaoPrimeiro).isLessThan(posicaoSegundo);
+    }
+
+    @Test
+    void projetoTotalmenteVazioNaoAparaceNoHtml() {
+        orcamento.setProjeto(null);
+
+        String html = service.gerarHtml(1L, null);
+
+        assertThat(html).doesNotContain("Dados do Projeto");
+    }
+
+    @Test
+    void projetoComApenasNomePreenchidoMostraSoEsseCampo() {
+        Projeto projeto = new Projeto();
+        projeto.setNome("Cozinha Gourmet");
+        orcamento.setProjeto(projeto);
+
+        String html = service.gerarHtml(1L, null);
+
+        assertThat(html).contains("Dados do Projeto");
+        assertThat(html).contains("Nome do Projeto");
+        assertThat(html).contains("Cozinha Gourmet");
+        assertThat(html).doesNotContain("Material / Ambiente");
+        assertThat(html).doesNotContain("Responsável Técnico");
+        assertThat(html).doesNotContain("Observações do Projeto");
+    }
+
+    @Test
+    void projetoComNomeEObservacoesMostraAmbosMasNaoOsOutrosCampos() {
+        Projeto projeto = new Projeto();
+        projeto.setNome("Cozinha Gourmet");
+        projeto.setObservacoes("Bancada em L, cuba dupla.");
+        orcamento.setProjeto(projeto);
+
+        String html = service.gerarHtml(1L, null);
+
+        assertThat(html).contains("Nome do Projeto");
+        assertThat(html).contains("Cozinha Gourmet");
+        assertThat(html).contains("Observações do Projeto");
+        assertThat(html).contains("Bancada em L, cuba dupla.");
+        assertThat(html).doesNotContain("Material / Ambiente");
+        assertThat(html).doesNotContain("Responsável Técnico");
+    }
+
+    @Test
+    void projetoSemImagensNaoMostraSecaoDeGaleriaNemPlaceholder() {
+        Projeto projeto = new Projeto();
+        projeto.setNome("Cozinha Gourmet");
+        orcamento.setProjeto(projeto);
+
+        String html = service.gerarHtml(1L, null);
+
+        assertThat(html).doesNotContain("Visualização do Projeto");
+        // "image-placeholder" as a CSS class name always appears (the stylesheet is inlined into
+        // every generated document), so check for the placeholder element's own text instead of
+        // the class name — a naive doesNotContain("image-placeholder") assertion here is always
+        // false regardless of whether the element itself renders.
+        assertThat(html).doesNotContain("Imagem do projeto");
     }
 }

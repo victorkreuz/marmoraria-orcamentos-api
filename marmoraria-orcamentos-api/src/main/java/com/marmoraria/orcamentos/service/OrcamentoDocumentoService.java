@@ -314,7 +314,8 @@ public class OrcamentoDocumentoService {
         dados.put("DATA_EMISSAO", esc(formatarData(orcamento.getDataEmissao())));
         dados.put("VALIDADE_DIAS", esc(validadeTexto(orcamento)));
         dados.put("DATA_VENCIMENTO", esc(formatarData(vencimento)));
-        dados.put("SECAO_PROJETO", opcoes.isImprimirProjetoAtivo() ? paginaProjeto(orcamento, responsavelTecnico) : "");
+        dados.put("SECAO_PROJETO_TEXTO", opcoes.isImprimirProjetoAtivo() ? paginaProjetoTexto(orcamento, responsavelTecnico) : "");
+        dados.put("SECAO_PROJETO_IMAGENS", opcoes.isImprimirProjetoImagensAtivo() ? paginaProjetoImagens(orcamento) : "");
 
         return renderizar("identificacao.html", dados);
     }
@@ -349,20 +350,40 @@ public class OrcamentoDocumentoService {
           .append("</div>");
     }
 
-    private String paginaProjeto(Orcamento orcamento, String responsavelTecnico) {
+    private String paginaProjetoTexto(Orcamento orcamento, String responsavelTecnico) {
         Projeto projeto = orcamento.getProjeto();
-        String nome = projeto == null ? "Projeto" : valor(projeto.getNome());
-        String tipoPedra = projeto == null ? "Tipo de pedra a definir" : valor(projeto.getTipoPedraPrincipal());
+        String nome = projeto == null ? null : projeto.getNome();
+        String tipoPedra = projeto == null ? null : projeto.getTipoPedraPrincipal();
+        String observacoes = projeto == null ? null : projeto.getObservacoes();
+
+        if (isBlank(nome) && isBlank(tipoPedra) && isBlank(responsavelTecnico) && isBlank(observacoes)) {
+            return "";
+        }
+
+        StringBuilder grid = new StringBuilder();
+        infoBlockSe(grid, "Nome do Projeto", nome);
+        infoBlockSe(grid, "Material / Ambiente", tipoPedra);
+        infoBlockSe(grid, "Responsável Técnico", responsavelTecnico);
 
         Map<String, String> dados = contextoBase();
-        dados.put("NOME_PROJETO", esc(nome));
-        dados.put("AMBIENTE_PROJETO", esc(tipoPedra));
-        dados.put("TIPO_PEDRA_PROJETO", esc(tipoPedra));
-        dados.put("OBSERVACOES_PROJETO", esc(valor(projeto == null ? null : projeto.getObservacoes())));
-        dados.put("IMAGENS_PROJETO", imagensProjetoHtml(projeto));
-        dados.put("RESPONSAVEL_TECNICO", esc(responsavelTecnico));
+        dados.put("CAMPOS_PROJETO_GRID", grid.toString());
+        dados.put("CAMPOS_PROJETO_OBSERVACOES", isBlank(observacoes) ? "" :
+            "<div class=\"info-block info-block--full\">" +
+            "<span class=\"info-block__label\">Observações do Projeto</span>" +
+            "<span class=\"info-block__value text-preserve-lines\">" + esc(observacoes) + "</span>" +
+            "</div>");
 
-        return renderizar("projeto.html", dados);
+        return renderizar("projeto-info.html", dados);
+    }
+
+    private String paginaProjetoImagens(Orcamento orcamento) {
+        String imagensHtml = imagensProjetoHtml(orcamento.getProjeto());
+        if (isBlank(imagensHtml)) {
+            return "";
+        }
+        Map<String, String> dados = contextoBase();
+        dados.put("IMAGENS_PROJETO", imagensHtml);
+        return renderizar("projeto-galeria.html", dados);
     }
 
     private String imagensProjetoHtml(Projeto projeto) {
@@ -390,7 +411,10 @@ public class OrcamentoDocumentoService {
         }
 
         String foto = projeto == null ? null : projeto.getFotoPrincipalUrl();
-        return imagemOuPlaceholder(foto, "gallery-grid__item gallery-grid__item--wide", "Foto do projeto", "Imagem do projeto");
+        if (isBlank(foto)) {
+            return "";
+        }
+        return "<img class=\"gallery-grid__item gallery-grid__item--wide\" src=\"" + esc(foto) + "\" alt=\"Foto do projeto\" />";
     }
 
     private String paginaItens(Orcamento orcamento, OpcoesGeracaoRequest opcoes) {
