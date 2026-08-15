@@ -97,4 +97,14 @@ public class Orcamento {
     @NotNull(message = "Status do orcamento e obrigatorio")
     @Enumerated(EnumType.STRING)
     private StatusOrcamento statusOrcamento;
+
+    public StatusOrcamento getStatusExibicao() {
+        boolean elegivelParaExpirar = statusOrcamento == StatusOrcamento.SOLICITADO
+                || statusOrcamento == StatusOrcamento.ENVIADO;
+        LocalDate vencimento = OrcamentoDatas.vencimento(this);
+        if (elegivelParaExpirar && vencimento != null && vencimento.isBefore(LocalDate.now())) {
+            return StatusOrcamento.EXPIRADO;
+        }
+        return statusOrcamento;
+    }
 }
