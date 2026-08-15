@@ -43,3 +43,6 @@ build/
 .env.*
 *.env
 secrets.properties
+
+### Contexto interno do Claude (nunca commitar — repo é público/portfólio) ###
+CLAUDE.md
