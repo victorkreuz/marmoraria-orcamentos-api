@@ -6,6 +6,7 @@ import com.marmoraria.orcamentos.entity.Cliente;
 import com.marmoraria.orcamentos.entity.Financeiro;
 import com.marmoraria.orcamentos.entity.ItemOrcamento;
 import com.marmoraria.orcamentos.entity.Orcamento;
+import com.marmoraria.orcamentos.entity.OrcamentoDatas;
 import com.marmoraria.orcamentos.entity.Projeto;
 import com.marmoraria.orcamentos.entity.ProjetoImagem;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -235,7 +236,7 @@ public class OrcamentoDocumentoService {
     private String paginaResumo(Orcamento orcamento) {
         Financeiro financeiro = financeiroOuVazio(orcamento);
         Projeto projeto = orcamento.getProjeto();
-        LocalDate vencimento = dataVencimento(orcamento);
+        LocalDate vencimento = OrcamentoDatas.vencimento(orcamento);
 
         Map<String, String> dados = contextoBase();
         dados.put("SECTION_CLASS", "doc-section-inline");
@@ -303,7 +304,7 @@ public class OrcamentoDocumentoService {
 
     private String paginaIdentificacao(Orcamento orcamento, String responsavelTecnico, OpcoesGeracaoRequest opcoes) {
         Cliente cliente = orcamento.getCliente();
-        LocalDate vencimento = dataVencimento(orcamento);
+        LocalDate vencimento = OrcamentoDatas.vencimento(orcamento);
 
         Map<String, String> dados = contextoBase();
         dados.put("SECTION_CLASS", "doc-section-inline");
@@ -499,7 +500,7 @@ public class OrcamentoDocumentoService {
         Map<String, String> dados = contextoBase();
         dados.put("NUMERO_ORCAMENTO", esc(numeroOrcamento(orcamento)));
         dados.put("DATA_EMISSAO", esc(formatarData(orcamento.getDataEmissao())));
-        dados.put("DATA_VENCIMENTO", esc(formatarData(dataVencimento(orcamento))));
+        dados.put("DATA_VENCIMENTO", esc(formatarData(OrcamentoDatas.vencimento(orcamento))));
         dados.put("VALIDADE_DIAS", esc(validadeTexto(orcamento)));
         dados.put("LOGO_COLORIDA_SRC", assetDataUri("Logo_ofc.png"));
         return renderizar("cabecalho.html", dados);
@@ -656,13 +657,6 @@ public class OrcamentoDocumentoService {
             return "-";
         }
         return orcamento.getPrazoExecucaoDias() + " dias úteis após aprovação.";
-    }
-
-    private LocalDate dataVencimento(Orcamento orcamento) {
-        if (orcamento.getDataEmissao() != null && orcamento.getValidadeDias() != null) {
-            return orcamento.getDataEmissao().plusDays(orcamento.getValidadeDias());
-        }
-        return orcamento.getDataValidade();
     }
 
     private String numeroOrcamento(Orcamento orcamento) {
