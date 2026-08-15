@@ -21,16 +21,20 @@
 
 ### 1.3 Design
 
-`OpcoesGeracaoRequest`: o campo `imprimirProjeto` é renomeado para `imprimirProjetoTexto`; novo campo `imprimirProjetoImagens`. `isImprimirProjetoImagensAtivo()` segue o mesmo padrão de default (`true` quando não informado) que `isImprimirProjetoAtivo()` já usa.
+**Nota de compatibilidade:** `marmoraria-orcamentos-api` e `marmoraria-orcamentos-web` são repositórios separados sem deploy sincronizado — um rename de campo no payload de geração quebraria silenciosamente (chave desconhecida no JSON é ignorada, não dá erro) durante a janela em que só um dos dois lados estivesse no ar, fazendo o checkbox correspondente simplesmente parar de fazer efeito sem aviso nenhum. Por isso, a divisão da flag abaixo é feita de forma **puramente aditiva**: nenhum campo existente muda de nome. Isso remove a necessidade de coordenar a ordem de deploy entre os dois repositórios — um frontend antigo continua funcionando normalmente contra o backend novo (só não ganha o controle novo até ser atualizado), e um frontend novo contra um backend antigo tem o campo extra simplesmente ignorado, sem regressão no que já funcionava.
+
+`OpcoesGeracaoRequest`: `imprimirProjeto` **mantém o nome e o significado atuais** (continua controlando só o texto do projeto); novo campo `imprimirProjetoImagens`, adicionado ao lado. `isImprimirProjetoImagensAtivo()` segue o mesmo padrão de default (`true` quando não informado) que `isImprimirProjetoAtivo()` já usa.
 
 `paginaProjeto()` divide em duas chamadas independentes, cada uma controlada pela sua flag:
 
-- **Texto:** monta os `info-block` só para campos não-vazios (mesmo padrão de `infoBlockSe`). Se nenhum campo tiver conteúdo, retorna string vazia — a seção inteira, com cabeçalho, some.
-- **Imagens:** se `imagensProjetoHtml()` não encontrar nenhuma imagem real (nem galeria, nem foto principal), retorna string vazia em vez de cair no placeholder.
+- **Texto** (`imprimirProjeto`, existente): monta os `info-block` só para campos não-vazios (mesmo padrão de `infoBlockSe`). Se nenhum campo tiver conteúdo, retorna string vazia — a seção inteira, com cabeçalho, some.
+- **Imagens** (`imprimirProjetoImagens`, novo): se `imagensProjetoHtml()` não encontrar nenhuma imagem real (nem galeria, nem foto principal), retorna string vazia em vez de cair no placeholder.
 
-`projeto.html` é dividido em dois templates (ex.: `projeto-info.html` + `projeto-galeria.html`), já que hoje é um único arquivo cobrindo as duas seções — cada um renderizado (ou omitido) independentemente a partir de `identificacao.html`.
+`projeto.html` é dividido em dois templates (ex.: `projeto-info.html` + `projeto-galeria.html`), já que hoje é um único arquivo cobrindo as duas seções — cada um renderizado (ou omitido) independentemente a partir de `identificacao.html`. Essa divisão de arquivo é puramente interna ao backend, sem efeito no contrato com o frontend.
 
-**Frontend:** `GerarOrcamentoOptions` (`api.types.ts`) ganha o segundo campo (`ocultarProjetoImagens`, ao lado do já existente `ocultarProjeto`, possivelmente renomeado para `ocultarProjetoTexto` por clareza); `OrcamentoDetailPage.tsx` ganha o segundo checkbox; `toBackendPayload()` em `orcamentos.service.ts` mapeia os dois valores.
+**Frontend:** `GerarOrcamentoOptions` (`api.types.ts`) mantém `ocultarProjeto` como está (mesmo nome, mesmo significado) e ganha um campo novo, `ocultarProjetoImagens`, ao lado; `OrcamentoDetailPage.tsx` ganha o checkbox correspondente; `toBackendPayload()` em `orcamentos.service.ts` mapeia `imprimirProjetoImagens: !options.ocultarProjetoImagens` além do mapeamento já existente de `ocultarProjeto`.
+
+Como o campo novo é opcional em ambas as pontas, backend e frontend deste bloco **não precisam ser mergeados/deployados juntos** — podem seguir em qualquer ordem, cada um funcionando de forma degradada-mas-correta até o outro lado alcançar.
 
 ## 2. Imagens cortadas (item 5)
 
