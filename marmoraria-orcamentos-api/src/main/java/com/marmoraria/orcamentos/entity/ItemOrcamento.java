@@ -80,4 +80,6 @@ public class ItemOrcamento {
     private BigDecimal valorDesconto;
 
     private BigDecimal valorTotal;
+
+    private Integer ordem;
 }
