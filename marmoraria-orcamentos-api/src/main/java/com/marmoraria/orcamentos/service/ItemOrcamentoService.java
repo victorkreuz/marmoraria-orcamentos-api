@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -58,16 +59,37 @@ public class ItemOrcamentoService {
     }
 
     public void calcularValorTotal(ItemOrcamento itemOrcamento) {
-        BigDecimal valorUnitario = valorOuZero(itemOrcamento.getValorUnitario());
+        BigDecimal precoUnitario = itemOrcamento.getPrecoUnitario();
+        if (precoUnitario == null) {
+            // Campo legado: precoUnitario e o campo atual, valorUnitario e mantido
+            // como fallback para compatibilidade com dados/chamadores antigos.
+            precoUnitario = itemOrcamento.getValorUnitario();
+            if (precoUnitario == null) {
+                throw new IllegalArgumentException("Preco unitario e obrigatorio");
+            }
+            itemOrcamento.setPrecoUnitario(precoUnitario);
+        }
+
+        if (itemOrcamento.getFreteIncluso() == null) {
+            itemOrcamento.setFreteIncluso(true);
+        } else if (Boolean.FALSE.equals(itemOrcamento.getFreteIncluso()) && itemOrcamento.getFreteValor() == null) {
+            throw new IllegalArgumentException("Frete valor e obrigatorio quando o frete nao esta incluso");
+        }
+
         BigDecimal valorDesconto = valorOuZero(itemOrcamento.getValorDesconto());
         BigDecimal quantidade = BigDecimal.valueOf(itemOrcamento.getQuantidade());
-        BigDecimal valorTotal = valorUnitario.multiply(quantidade).subtract(valorDesconto);
+        BigDecimal subtotal = arredondar(precoUnitario.multiply(quantidade).subtract(valorDesconto));
 
-        if (valorTotal.compareTo(BigDecimal.ZERO) < 0) {
+        if (subtotal.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Valor total do item nao pode ser negativo");
         }
 
-        itemOrcamento.setValorTotal(valorTotal);
+        itemOrcamento.setSubtotal(subtotal);
+        itemOrcamento.setValorTotal(subtotal);
+    }
+
+    private BigDecimal arredondar(BigDecimal valor) {
+        return valor.setScale(2, RoundingMode.HALF_UP);
     }
 
     private void recalcularOrcamentoDoItem(ItemOrcamento itemOrcamento) {
