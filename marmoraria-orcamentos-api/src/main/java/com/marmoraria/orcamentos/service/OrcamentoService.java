@@ -59,14 +59,19 @@ public class OrcamentoService {
 
         BigDecimal totalItens = BigDecimal.ZERO;
         List<ItemOrcamento> itens = orcamento.getItemOrcamentoList();
+        boolean itensFornecidosPeloChamador = itens != null && !itens.isEmpty();
 
-        if ((itens == null || itens.isEmpty()) && orcamento.getId() != null) {
+        if (!itensFornecidosPeloChamador && orcamento.getId() != null) {
             itens = itemOrcamentoRepository.findByOrcamentoId(orcamento.getId());
         }
 
         if (itens != null) {
-            for (ItemOrcamento item : itens) {
+            for (int i = 0; i < itens.size(); i++) {
+                ItemOrcamento item = itens.get(i);
                 item.setOrcamento(orcamento);
+                if (itensFornecidosPeloChamador) {
+                    item.setOrdem(i);
+                }
                 itemOrcamentoService.calcularValorTotal(item);
                 totalItens = totalItens.add(valorOuZero(item.getSubtotal()));
             }

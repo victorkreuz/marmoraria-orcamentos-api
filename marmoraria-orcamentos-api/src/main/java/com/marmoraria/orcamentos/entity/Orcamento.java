@@ -15,6 +15,7 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.FutureOrPresent;
@@ -72,6 +73,7 @@ public class Orcamento {
     @Valid
     @JsonManagedReference
     @OneToMany(mappedBy = "orcamento", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OrderBy("ordem ASC, id ASC")
     private List<ItemOrcamento> itemOrcamentoList;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -97,4 +99,14 @@ public class Orcamento {
     @NotNull(message = "Status do orcamento e obrigatorio")
     @Enumerated(EnumType.STRING)
     private StatusOrcamento statusOrcamento;
+
+    public StatusOrcamento getStatusExibicao() {
+        boolean elegivelParaExpirar = statusOrcamento == StatusOrcamento.SOLICITADO
+                || statusOrcamento == StatusOrcamento.ENVIADO;
+        LocalDate vencimento = OrcamentoDatas.vencimento(this);
+        if (elegivelParaExpirar && vencimento != null && vencimento.isBefore(LocalDate.now())) {
+            return StatusOrcamento.EXPIRADO;
+        }
+        return statusOrcamento;
+    }
 }
