@@ -1,6 +1,9 @@
 package com.marmoraria.orcamentos.service;
 
+import com.marmoraria.orcamentos.dto.GerarOrcamentoRequest;
+import com.marmoraria.orcamentos.dto.OpcoesGeracaoRequest;
 import com.marmoraria.orcamentos.entity.Cliente;
+import com.marmoraria.orcamentos.entity.Financeiro;
 import com.marmoraria.orcamentos.entity.ItemOrcamento;
 import com.marmoraria.orcamentos.entity.Orcamento;
 import com.marmoraria.orcamentos.entity.Projeto;
@@ -126,5 +129,44 @@ class OrcamentoDocumentoServiceTest {
         // the class name — a naive doesNotContain("image-placeholder") assertion here is always
         // false regardless of whether the element itself renders.
         assertThat(html).doesNotContain("Imagem do projeto");
+    }
+
+    private Financeiro financeiroComTotal(String totalFinal) {
+        Financeiro financeiro = new Financeiro();
+        financeiro.setSubtotalItens(new BigDecimal("9999.00"));
+        financeiro.setTotalFinal(new BigDecimal(totalFinal));
+        return financeiro;
+    }
+
+    @Test
+    void ocultarTotalGeralRemoveOResumoFinanceiroInteiroNaoSoATotalFinal() {
+        orcamento.setFinanceiro(financeiroComTotal("1234.56"));
+        orcamento.setItemOrcamentoList(List.of(itemComOrdem("Item Unico", 0)));
+        GerarOrcamentoRequest request = new GerarOrcamentoRequest();
+        OpcoesGeracaoRequest opcoes = new OpcoesGeracaoRequest();
+        opcoes.setImprimirTotal(false);
+        request.setOpcoes(opcoes);
+
+        String html = service.gerarHtml(1L, request);
+
+        // A "Total final" line já era corretamente omitida antes desta correção — o que faltava
+        // era o resto do bloco (ex.: "Subtotal dos itens") também sumir, já que sozinho ele já
+        // revela o valor quando não há desconto/frete. Por isso o fixture usa um subtotalItens
+        // (9999.00) diferente do totalFinal (1234.56): se o teste checasse só "1.234,56", ele
+        // passaria mesmo com o bug antigo (que já escondia só essa linha) sem provar nada.
+        assertThat(html).doesNotContain("9.999,00");
+        assertThat(html).doesNotContain("1.234,56");
+        assertThat(html).doesNotContain("Resumo financeiro");
+    }
+
+    @Test
+    void semOcultarTotalGeralOValorApareceNasDuasOcorrencias() {
+        orcamento.setFinanceiro(financeiroComTotal("1234.56"));
+        orcamento.setItemOrcamentoList(List.of(itemComOrdem("Item Unico", 0)));
+
+        String html = service.gerarHtml(1L, null);
+
+        long ocorrencias = html.split("1\\.234,56", -1).length - 1;
+        assertThat(ocorrencias).isGreaterThanOrEqualTo(2);
     }
 }

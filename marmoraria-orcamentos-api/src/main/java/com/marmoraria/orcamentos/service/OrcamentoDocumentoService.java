@@ -445,6 +445,25 @@ public class OrcamentoDocumentoService {
 
     private String paginaTotais(Orcamento orcamento, OpcoesGeracaoRequest opcoes, String responsavelTecnico, String observacoesDocumento) {
         Financeiro financeiro = financeiroOuVazio(orcamento);
+
+        Map<String, String> dados = contextoBase();
+        dados.put("SECTION_CLASS", "doc-section-inline");
+        dados.put("MEIO_PAGAMENTO_ITEM", meioPagamentoItem(financeiro));
+        dados.put("PRAZO_PRODUCAO", esc(prazoProducao(orcamento)));
+        dados.put("RESUMO_FINANCEIRO_ITEM", opcoes.isImprimirTotalAtivo() ? resumoFinanceiroItem(financeiro) : "");
+        dados.put("NOME_CLIENTE", esc(nomeCliente(orcamento)));
+        dados.put("RESPONSAVEL_TECNICO", esc(responsavelTecnico));
+        String obsItens = obsDocumentoItens(observacoesDocumento);
+        dados.put("SECAO_OBS_DOCUMENTO", isBlank(obsItens) ? "" :
+            "<section class=\"pdf-module module-with-divider no-break\">" +
+            "<div class=\"section-header\"><h2 class=\"section-title\">Observações Importantes</h2></div>" +
+            "<ul class=\"commercial-obs-list\">" + obsItens + "</ul>" +
+            "</section>");
+
+        return renderizar("totais.html", dados);
+    }
+
+    private String resumoFinanceiroItem(Financeiro financeiro) {
         StringBuilder linhas = new StringBuilder();
         linhas.append(linhaTotal("Subtotal dos itens", formatarMoeda(financeiro.getSubtotalItens()), false));
 
@@ -461,25 +480,14 @@ public class OrcamentoDocumentoService {
         if (valorOuZero(financeiro.getAdendos()).compareTo(BigDecimal.ZERO) > 0) {
             linhas.append(linhaTotal("Adendos / Acréscimos", formatarMoeda(financeiro.getAdendos()), false));
         }
-        if (opcoes.isImprimirTotalAtivo()) {
-            linhas.append(linhaTotal("Total final", formatarMoeda(financeiro.getTotalFinal()), true));
-        }
+        linhas.append(linhaTotal("Total final", formatarMoeda(financeiro.getTotalFinal()), true));
 
-        Map<String, String> dados = contextoBase();
-        dados.put("SECTION_CLASS", "doc-section-inline");
-        dados.put("LINHAS_TOTAIS", linhas.toString());
-        dados.put("MEIO_PAGAMENTO_ITEM", meioPagamentoItem(financeiro));
-        dados.put("PRAZO_PRODUCAO", esc(prazoProducao(orcamento)));
-        dados.put("NOME_CLIENTE", esc(nomeCliente(orcamento)));
-        dados.put("RESPONSAVEL_TECNICO", esc(responsavelTecnico));
-        String obsItens = obsDocumentoItens(observacoesDocumento);
-        dados.put("SECAO_OBS_DOCUMENTO", isBlank(obsItens) ? "" :
-            "<section class=\"pdf-module module-with-divider no-break\">" +
-            "<div class=\"section-header\"><h2 class=\"section-title\">Observações Importantes</h2></div>" +
-            "<ul class=\"commercial-obs-list\">" + obsItens + "</ul>" +
-            "</section>");
-
-        return renderizar("totais.html", dados);
+        return "<li class=\"payment-item payment-item--full\">" +
+                "<span class=\"payment-item__label\">Resumo financeiro</span>" +
+                "<span class=\"payment-item__value\">" +
+                "<table class=\"totals-table\">" + linhas + "</table>" +
+                "</span>" +
+                "</li>";
     }
 
     private String tfootTotais(Financeiro financeiro) {
