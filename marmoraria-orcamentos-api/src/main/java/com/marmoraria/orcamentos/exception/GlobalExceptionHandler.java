@@ -43,6 +43,11 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, "Parametro invalido: " + exception.getName(), request.getRequestURI(), null);
     }
 
+    @ExceptionHandler(ContaBloqueadaException.class)
+    public ResponseEntity<ApiError> handleContaBloqueada(ContaBloqueadaException exception, HttpServletRequest request) {
+        return buildResponse(HttpStatus.TOO_MANY_REQUESTS, exception.getMessage(), request.getRequestURI(), null);
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ApiError> handleAuthentication(AuthenticationException exception, HttpServletRequest request) {
         return buildResponse(HttpStatus.UNAUTHORIZED, "Usuario ou senha invalidos", request.getRequestURI(), null);
@@ -78,10 +83,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleUnexpected(Exception exception, HttpServletRequest request) {
         log.error("Erro inesperado em {} {}: {}", request.getMethod(), request.getRequestURI(), exception.getMessage(), exception);
-        String devMessage = exception.getClass().getSimpleName() + ": " + exception.getMessage();
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, devMessage, request.getRequestURI(), null);
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno no servidor. Tente novamente mais tarde.", request.getRequestURI(), null);
     }
-
     private ResponseEntity<ApiError> buildResponse(HttpStatus status, String message, String path, Map<String, String> fields) {
         ApiError apiError = new ApiError(
                 LocalDateTime.now(),
