@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class LoginAttemptService {
 
     private static final int MAX_TENTATIVAS = 5;
-    private static final long BLOQUEIO_MINUTOS = 1;
+    private static final long BLOQUEIO_MINUTOS = 15;
 
     private final ConcurrentHashMap<String, AtomicInteger> tentativas = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Instant> bloqueados = new ConcurrentHashMap<>();
@@ -21,7 +21,6 @@ public class LoginAttemptService {
             return false;
         }
         if (Instant.now().isAfter(expiraEm)) {
-            // o bloqueio expirou, limpa e libera
             bloqueados.remove(username);
             tentativas.remove(username);
             return false;
